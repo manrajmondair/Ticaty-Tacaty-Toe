@@ -20,6 +20,12 @@
 
 ---
 
+<h3 align="center">
+  <a href="https://ticatytacatytoe.vercel.app/">⚡ Play Now</a>
+</h3>
+
+---
+
 ## The Game
 
 Two wizards. Different goals. Four forbidden spells. One board.
@@ -50,17 +56,21 @@ Casting a spell consumes your turn. Choose wisely.
   - *Medium* — Heuristic evaluation
   - *Hard* — Minimax with alpha-beta pruning and iterative deepening
 
-## Running
+## Play
+
+**[ticatytacatytoe.vercel.app](https://ticatytacatytoe.vercel.app/)** — jump straight in, no setup needed.
+
+#### Run Locally
+
+Want to tweak the code or play offline? Clone and serve:
 
 ```bash
-# Serve locally (ES modules require a server)
+git clone https://github.com/manrajmondair/Ticaty-Tacaty-Toe.git
+cd Ticaty-Tacaty-Toe
 ./serve.sh
-
-# Or manually
-python3 -m http.server 8080
 ```
 
-Open **http://localhost:8080** in your browser.
+Open **http://localhost:8080** in your browser. ES modules require a local server — `python3 -m http.server 8080` works too.
 
 ## Stack
 
