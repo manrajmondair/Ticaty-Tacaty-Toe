@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horcrux Hunter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ═══════════ GLOBAL BACKGROUND ═══════════ -->
+  <div class="hogwarts-bg" aria-hidden="true">
+    <!-- Hogwarts Castle Silhouette -->
+    <svg class="castle-silhouette" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMax slice">
+      <defs>
+        <linearGradient id="castleGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1a1a2e" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#0a0a15" stop-opacity="1"/>
+        </linearGradient>
+      </defs>
+      <!-- Castle base and towers -->
+      <path d="M0,300 L0,240 L40,240 L40,200 L50,180 L60,200 L60,240 L100,240 L100,180 L110,160 L115,100 L120,160 L130,180 L130,240 L180,240 L180,200 L190,190 L200,200 L200,240 L260,240 L260,160 L270,120 L275,80 L280,120 L290,160 L290,240 L340,240 L340,210 L350,200 L360,210 L360,240 L420,240 L420,170 L430,150 L435,90 L440,150 L450,170 L450,240 L520,240 L520,220 L530,210 L540,220 L540,240 L600,240 L600,190 L610,170 L615,110 L620,170 L630,190 L630,240 L700,240 L700,220 L710,200 L720,220 L720,240 L780,240 L780,160 L790,130 L795,70 L800,130 L810,160 L810,240 L870,240 L870,210 L880,200 L890,210 L890,240 L940,240 L940,180 L950,160 L955,110 L960,160 L970,180 L970,240 L1030,240 L1030,220 L1040,210 L1050,220 L1050,240 L1100,240 L1100,190 L1110,170 L1115,130 L1120,170 L1130,190 L1130,240 L1160,240 L1160,210 L1170,200 L1180,210 L1180,240 L1200,240 L1200,300 Z" fill="url(#castleGrad)"/>
+      <!-- Tower spires -->
+      <path d="M113,100 L115,60 L117,100" fill="#1a1a2e" stroke="#2a2a4a" stroke-width="0.5"/>
+      <path d="M273,80 L275,35 L277,80" fill="#1a1a2e" stroke="#2a2a4a" stroke-width="0.5"/>
+      <path d="M433,90 L435,40 L437,90" fill="#1a1a2e" stroke="#2a2a4a" stroke-width="0.5"/>
+      <path d="M613,110 L615,55 L617,110" fill="#1a1a2e" stroke="#2a2a4a" stroke-width="0.5"/>
+      <path d="M793,70 L795,20 L797,70" fill="#1a1a2e" stroke="#2a2a4a" stroke-width="0.5"/>
+      <path d="M953,110 L955,50 L957,110" fill="#1a1a2e" stroke="#2a2a4a" stroke-width="0.5"/>
+      <path d="M1113,130 L1115,75 L1117,130" fill="#1a1a2e" stroke="#2a2a4a" stroke-width="0.5"/>
+      <!-- Tiny lit windows -->
+      <rect x="108" y="140" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.4"/>
+      <rect x="120" y="150" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.3"/>
+      <rect x="268" y="130" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.5"/>
+      <rect x="280" y="145" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.3"/>
+      <rect x="428" y="140" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.4"/>
+      <rect x="440" y="155" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.35"/>
+      <rect x="608" y="150" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.4"/>
+      <rect x="620" y="170" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.3"/>
+      <rect x="788" y="120" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.5"/>
+      <rect x="800" y="140" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.35"/>
+      <rect x="948" y="145" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.4"/>
+      <rect x="960" y="160" width="3" height="4" rx="0.5" fill="#ffd700" opacity="0.3"/>
+    </svg>
+
+    <!-- Floating Stars -->
+    <div class="stars-layer stars-slow"></div>
+    <div class="stars-layer stars-fast"></div>
+
+    <!-- Deathly Hallows watermark -->
+    <svg class="deathly-hallows" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+      <circle cx="50" cy="44" r="16" fill="none" stroke="currentColor" stroke-width="1"/>
+      <polygon points="50,10 20,90 80,90" fill="none" stroke="currentColor" stroke-width="1"/>
+      <line x1="50" y1="10" x2="50" y2="90" stroke="currentColor" stroke-width="1"/>
+    </svg>
+
+    <!-- Swirling Mist -->
+    <div class="mist mist-1"></div>
+    <div class="mist mist-2"></div>
+    <div class="mist mist-3"></div>
+  </div>
+
+  <!-- ═══════════ TITLE SCREEN ═══════════ -->
+  <section id="screen-title" class="screen active">
+    <div class="particles"></div>
+    <div class="title-container">
+      <!-- Deathly Hallows emblem -->
+      <div class="title-emblem">
+        <svg viewBox="0 0 100 110" width="80" height="88">
+          <circle cx="50" cy="48" r="16" fill="none" stroke="#ffd700" stroke-width="2" opacity="0.9"/>
+          <polygon points="50,12 18,95 82,95" fill="none" stroke="#ffd700" stroke-width="2" opacity="0.9"/>
+          <line x1="50" y1="12" x2="50" y2="95" stroke="#ffd700" stroke-width="2" opacity="0.9"/>
+        </svg>
+      </div>
+      <h1 class="game-title">Horcrux Hunter</h1>
+      <p class="subtitle">An Asymmetric Wizard's Duel</p>
+      <div class="menu-buttons">
+        <button id="btn-pvp" class="btn-magic">Local Duel</button>
+        <button id="btn-ai" class="btn-magic">Face the Dark Lord</button>
+        <button id="btn-how-to-play" class="btn-magic btn-secondary">How to Play</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ SETUP SCREEN ═══════════ -->
+  <section id="screen-setup" class="screen">
+    <div class="setup-container">
+      <h2 class="setup-heading">Choose Your Side</h2>
+      <div class="role-select">
+        <button class="role-card selected" data-role="harry">
+          <span class="role-icon">&#9889;</span>
+          <span class="role-name">Harry Potter</span>
+          <span class="role-desc">Win 3 boards in a row</span>
+        </button>
+        <span class="role-vs">VS</span>
+        <button class="role-card" data-role="voldemort">
+          <span class="role-icon">&#9760;</span>
+          <span class="role-name">Lord Voldemort</span>
+          <span class="role-desc">Corrupt 5 of 9 boards</span>
+        </button>
+      </div>
+      <div class="difficulty-select">
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty">
+          <option value="easy">Easy — Random Spells</option>
+          <option value="medium">Medium — Heuristic</option>
+          <option value="hard" selected>Hard — Minimax AI</option>
+        </select>
+      </div>
+      <button id="btn-start-game" class="btn-magic">Begin the Duel</button>
+    </div>
+  </section>
+
+  <!-- ═══════════ GAME SCREEN ═══════════ -->
+  <section id="screen-game" class="screen">
+    <header class="game-header">
+      <div class="player-info harry-info">
+        <span class="player-icon">&#9889;</span>
+        <div class="player-details">
+          <span class="player-name">Harry</span>
+          <span class="player-score"><span id="harry-boards">0</span> boards</span>
+          <span class="player-goal" id="harry-goal">3 in a row</span>
+        </div>
+      </div>
+
+      <div class="turn-indicator" id="turn-indicator">Harry's Turn</div>
+
+      <div class="player-info voldemort-info">
+        <span class="player-icon">&#9760;</span>
+        <div class="player-details">
+          <span class="player-name">Voldemort</span>
+          <span class="player-score"><span id="voldemort-boards">0</span> boards</span>
+          <span class="player-goal" id="voldemort-goal">5 of 9</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- The Ultimate Board -->
+    <div class="board-wrapper">
+      <div class="ultimate-board" id="ultimate-board">
+      </div>
+    </div>
+
+    <!-- Spell Bar -->
+    <div class="spell-bar" id="spell-bar">
+      <div class="spell-group harry-spells" id="harry-spells">
+        <button class="spell-btn harry-spell" id="spell-expelliarmus" data-spell="expelliarmus" title="Remove one of Voldemort's marks from any active board">
+          <span class="spell-icon">&#10024;</span>
+          <span class="spell-name">Expelliarmus</span>
+        </button>
+        <button class="spell-btn harry-spell" id="spell-patronus" data-spell="patronus" title="Shield a board — Voldemort cannot win it for 2 turns">
+          <span class="spell-icon">&#128737;</span>
+          <span class="spell-name">Patronus</span>
+        </button>
+      </div>
+      <div class="spell-group voldemort-spells" id="voldemort-spells">
+        <button class="spell-btn voldemort-spell" id="spell-avada" data-spell="avadaKedavra" title="Claim an empty cell AND an adjacent empty cell">
+          <span class="spell-icon">&#9889;</span>
+          <span class="spell-name">Avada Kedavra</span>
+        </button>
+        <button class="spell-btn voldemort-spell" id="spell-darkmark" data-spell="darkMark" title="Corrupt one of Harry's marks, making it yours">
+          <span class="spell-icon">&#9760;</span>
+          <span class="spell-name">Dark Mark</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Spell Instructions Overlay -->
+    <div class="spell-instructions" id="spell-instructions" hidden>
+      <p id="spell-instructions-text"></p>
+      <button id="spell-cancel" class="btn-magic btn-small">Cancel</button>
+    </div>
+
+    <!-- Game Log -->
+    <div class="game-log" id="game-log"></div>
+  </section>
+
+  <!-- ═══════════ GAME OVER SCREEN ═══════════ -->
+  <section id="screen-gameover" class="screen">
+    <div class="particles"></div>
+    <div class="result-container">
+      <h2 id="result-title" class="result-title"></h2>
+      <p id="result-desc" class="result-desc"></p>
+      <div class="result-actions">
+        <button id="btn-rematch" class="btn-magic">Rematch</button>
+        <button id="btn-main-menu" class="btn-magic btn-secondary">Main Menu</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ RULES MODAL ═══════════ -->
+  <div id="rules-modal" class="modal-overlay">
+    <div class="modal-content">
+      <button id="close-rules" class="modal-close">&times;</button>
+      <h2>How to Play</h2>
+
+      <h3>The Board</h3>
+      <p>9 mini tic-tac-toe boards arranged in a 3&times;3 grid. Where you place your mark determines which mini-board your opponent must play in next.</p>
+
+      <h3>Asymmetric Win Conditions</h3>
+      <p><strong>&#9889; Harry</strong> wins by claiming 3 mini-boards <em>in a row</em> on the meta-grid.</p>
+      <p><strong>&#9760; Voldemort</strong> wins by corrupting <em>5 out of 9</em> mini-boards total (no row needed).</p>
+
+      <h3>Spells (Once Per Game)</h3>
+      <p><strong>&#10024; Expelliarmus</strong> — Remove one of Voldemort's marks.</p>
+      <p><strong>&#128737; Patronus Shield</strong> — Protect a board for 2 turns.</p>
+      <p><strong>&#9889; Avada Kedavra</strong> — Claim two adjacent empty cells.</p>
+      <p><strong>&#9760; Dark Mark</strong> — Corrupt one of Harry's marks.</p>
+      <p>Casting a spell uses your turn. Your opponent gets free choice of board afterward.</p>
+
+      <h3>Ultimate Tic-Tac-Toe Rule</h3>
+      <p>The cell you play in (0-8) sends your opponent to the corresponding mini-board. If that board is already completed, they can play anywhere.</p>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

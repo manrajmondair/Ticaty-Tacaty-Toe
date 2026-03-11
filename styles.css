@@ -1,0 +1,1331 @@
+/* ═══════════════════════════════════════════════════════
+   HORCRUX HUNTER — Harry Potter Themed Ultimate TTT
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  /* Background & Surfaces */
+  --bg-primary: #0a0a15;
+  --bg-secondary: #12121f;
+  --bg-card: #1a1a2e;
+  --bg-cell: #16213e;
+  --bg-cell-hover: #1e2d50;
+
+  /* Harry / Gold */
+  --harry-gold: #d4a017;
+  --harry-glow: #ffd700;
+  --harry-bg: rgba(212, 160, 23, 0.08);
+  --harry-mark: #f0c040;
+
+  /* Voldemort / Green */
+  --voldy-green: #2ecc40;
+  --voldy-glow: #39ff14;
+  --voldy-bg: rgba(46, 204, 64, 0.08);
+  --voldy-mark: #30e050;
+  --voldy-dark: #0d3b1a;
+
+  /* Text */
+  --text-primary: #e8d5b7;
+  --text-secondary: #a89478;
+  --text-muted: #6b5e4f;
+
+  /* Accents */
+  --border-color: #2a2a4a;
+  --parchment: #1e1a14;
+  --parchment-light: #2c2416;
+  --purple-accent: #6c3fa0;
+
+  /* Fonts */
+  --font-heading: 'Cinzel', serif;
+  --font-body: 'Lora', serif;
+
+  /* Sizing */
+  --board-size: min(88vw, 560px);
+}
+
+/* ── Reset & Base ─────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* Vignette overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(108, 63, 160, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 0%, rgba(13, 59, 26, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(10, 10, 21, 1) 0%, transparent 70%);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* ── Screens ──────────────────────────────────────────── */
+.screen {
+  display: none;
+  width: 100%;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+#screen-game {
+  justify-content: flex-start;
+  padding-top: 12px;
+  position: relative;
+}
+
+.screen.active {
+  display: flex;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════════════════
+   HOGWARTS BACKGROUND LAYER
+   ══════════════════════════════════════════════════════ */
+.hogwarts-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* ── Castle Silhouette (bottom of screen) ─────────── */
+.castle-silhouette {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  min-height: 200px;
+  max-height: 35vh;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+/* Lit windows flicker */
+.castle-silhouette rect {
+  animation: windowFlicker 4s ease-in-out infinite alternate;
+}
+.castle-silhouette rect:nth-child(odd) { animation-delay: -1s; }
+.castle-silhouette rect:nth-child(3n) { animation-delay: -2.5s; }
+.castle-silhouette rect:nth-child(4n) { animation-delay: -0.5s; animation-duration: 3s; }
+
+@keyframes windowFlicker {
+  0%, 80% { opacity: 0.3; }
+  85% { opacity: 0.7; }
+  90% { opacity: 0.2; }
+  100% { opacity: 0.5; }
+}
+
+/* ── Star Layers ──────────────────────────────────── */
+.stars-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.stars-slow {
+  background-image:
+    radial-gradient(1.5px 1.5px at 10% 8%, #ffd700 50%, transparent 50%),
+    radial-gradient(1px 1px at 25% 15%, #ffffff 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 45% 5%, #ffd700 50%, transparent 50%),
+    radial-gradient(1px 1px at 60% 12%, #ffffff 50%, transparent 50%),
+    radial-gradient(2px 2px at 75% 3%, #ffd700 50%, transparent 50%),
+    radial-gradient(1px 1px at 88% 18%, #ffffff 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 15% 28%, #ffffff 50%, transparent 50%),
+    radial-gradient(1px 1px at 35% 22%, #ffd700 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 55% 30%, #ffffff 50%, transparent 50%),
+    radial-gradient(1px 1px at 70% 25%, #ffd700 50%, transparent 50%),
+    radial-gradient(2px 2px at 92% 8%, #ffffff 50%, transparent 50%),
+    radial-gradient(1px 1px at 5% 35%, #ffd700 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 82% 32%, #ffffff 50%, transparent 50%),
+    radial-gradient(1px 1px at 48% 18%, #ffffff 50%, transparent 50%),
+    radial-gradient(1px 1px at 20% 42%, #ffd700 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 65% 38%, #ffffff 50%, transparent 50%),
+    radial-gradient(1px 1px at 38% 45%, #ffffff 50%, transparent 50%),
+    radial-gradient(1px 1px at 95% 40%, #ffd700 50%, transparent 50%);
+  animation: starsTwinkle 6s ease-in-out infinite alternate;
+  opacity: 0.6;
+}
+
+.stars-fast {
+  background-image:
+    radial-gradient(1px 1px at 12% 6%, rgba(255, 215, 0, 0.8) 50%, transparent 50%),
+    radial-gradient(1px 1px at 30% 10%, rgba(255, 255, 255, 0.7) 50%, transparent 50%),
+    radial-gradient(1px 1px at 50% 3%, rgba(255, 215, 0, 0.6) 50%, transparent 50%),
+    radial-gradient(1px 1px at 68% 14%, rgba(255, 255, 255, 0.8) 50%, transparent 50%),
+    radial-gradient(1px 1px at 85% 7%, rgba(255, 215, 0, 0.7) 50%, transparent 50%),
+    radial-gradient(1px 1px at 22% 20%, rgba(255, 255, 255, 0.6) 50%, transparent 50%),
+    radial-gradient(1px 1px at 42% 16%, rgba(255, 215, 0, 0.7) 50%, transparent 50%),
+    radial-gradient(1px 1px at 78% 22%, rgba(255, 255, 255, 0.5) 50%, transparent 50%),
+    radial-gradient(1px 1px at 58% 28%, rgba(255, 215, 0, 0.6) 50%, transparent 50%),
+    radial-gradient(1px 1px at 8% 32%, rgba(255, 255, 255, 0.7) 50%, transparent 50%),
+    radial-gradient(1px 1px at 90% 26%, rgba(255, 215, 0, 0.5) 50%, transparent 50%),
+    radial-gradient(1px 1px at 35% 35%, rgba(255, 255, 255, 0.6) 50%, transparent 50%);
+  animation: starsTwinkle 4s ease-in-out infinite alternate-reverse;
+  opacity: 0.4;
+}
+
+@keyframes starsTwinkle {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.4; }
+}
+
+/* ── Deathly Hallows Watermark ────────────────────── */
+.deathly-hallows {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(108, 63, 160, 0.06);
+  z-index: 0;
+  animation: hallowsSpin 60s linear infinite;
+}
+
+@keyframes hallowsSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ── Swirling Mist ────────────────────────────────── */
+.mist {
+  position: absolute;
+  width: 120%;
+  height: 150px;
+  left: -10%;
+  border-radius: 50%;
+  filter: blur(40px);
+  z-index: 1;
+}
+
+.mist-1 {
+  bottom: 120px;
+  background: radial-gradient(ellipse at center, rgba(108, 63, 160, 0.08) 0%, transparent 70%);
+  animation: mistDrift 20s ease-in-out infinite;
+}
+
+.mist-2 {
+  bottom: 60px;
+  background: radial-gradient(ellipse at center, rgba(46, 204, 64, 0.04) 0%, transparent 70%);
+  animation: mistDrift 25s ease-in-out infinite reverse;
+  animation-delay: -8s;
+}
+
+.mist-3 {
+  bottom: 180px;
+  background: radial-gradient(ellipse at center, rgba(212, 160, 23, 0.04) 0%, transparent 70%);
+  animation: mistDrift 18s ease-in-out infinite;
+  animation-delay: -12s;
+}
+
+@keyframes mistDrift {
+  0%, 100% { transform: translateX(-5%) scaleX(1); opacity: 0.5; }
+  33% { transform: translateX(3%) scaleX(1.1); opacity: 0.8; }
+  66% { transform: translateX(-2%) scaleX(0.95); opacity: 0.6; }
+}
+
+/* Ensure all screens sit above the background */
+.screen {
+  z-index: 2;
+}
+
+/* ── Floating Particles ───────────────────────────────── */
+.particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.particles::before,
+.particles::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite;
+}
+
+.particles::before {
+  width: 4px; height: 4px;
+  background: var(--harry-gold);
+  top: 20%; left: 15%;
+  box-shadow:
+    120px 40px 0 0 rgba(212, 160, 23, 0.4),
+    250px 100px 0 1px rgba(212, 160, 23, 0.3),
+    60px 200px 0 0 rgba(212, 160, 23, 0.5),
+    300px 250px 0 1px rgba(212, 160, 23, 0.2),
+    180px 300px 0 0 rgba(212, 160, 23, 0.4),
+    400px 150px 0 1px rgba(212, 160, 23, 0.3),
+    50px 350px 0 0 rgba(212, 160, 23, 0.2),
+    350px 50px 0 1px rgba(212, 160, 23, 0.4);
+  filter: blur(1px);
+}
+
+.particles::after {
+  width: 3px; height: 3px;
+  background: var(--voldy-green);
+  top: 50%; right: 20%;
+  box-shadow:
+    -80px -30px 0 0 rgba(46, 204, 64, 0.3),
+    -200px 60px 0 1px rgba(46, 204, 64, 0.2),
+    -120px -120px 0 0 rgba(46, 204, 64, 0.4),
+    -300px -50px 0 1px rgba(46, 204, 64, 0.2),
+    -50px 100px 0 0 rgba(46, 204, 64, 0.3),
+    -250px 120px 0 1px rgba(46, 204, 64, 0.2);
+  filter: blur(1px);
+  animation-delay: -4s;
+  animation-direction: reverse;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+  50% { transform: translateY(-30px) rotate(180deg); opacity: 1; }
+}
+
+/* ── Title Screen ─────────────────────────────────────── */
+.title-container {
+  text-align: center;
+  z-index: 1;
+}
+
+.title-emblem {
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 20px var(--harry-gold));
+  animation: emblemPulse 3s ease-in-out infinite;
+  display: flex;
+  justify-content: center;
+}
+
+.title-emblem svg {
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+}
+
+@keyframes emblemPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px var(--harry-gold)); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 40px var(--harry-gold)); }
+}
+
+.game-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.2rem, 8vw, 4rem);
+  font-weight: 900;
+  background: linear-gradient(180deg, #ffd700, #b8860b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 3px;
+  text-shadow: none;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-bottom: 40px;
+}
+
+/* ── Buttons ──────────────────────────────────────────── */
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.btn-magic {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 14px 36px;
+  border: 2px solid var(--harry-gold);
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.15), rgba(212, 160, 23, 0.05));
+  color: var(--harry-gold);
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: all 0.25s ease;
+  min-width: 220px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-magic::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  background: rgba(212, 160, 23, 0.15);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s;
+}
+
+.btn-magic:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-magic:hover {
+  border-color: var(--harry-glow);
+  color: var(--harry-glow);
+  box-shadow: 0 0 25px rgba(212, 160, 23, 0.3);
+}
+
+.btn-magic:active {
+  transform: scale(0.97);
+}
+
+.btn-secondary {
+  border-color: var(--text-muted);
+  color: var(--text-secondary);
+  background: transparent;
+  font-size: 0.85rem;
+}
+
+.btn-secondary:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.btn-small {
+  padding: 8px 20px;
+  font-size: 0.8rem;
+  min-width: auto;
+}
+
+/* ── Setup Screen ─────────────────────────────────────── */
+.setup-container {
+  text-align: center;
+  max-width: 600px;
+}
+
+.setup-heading {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  color: var(--text-primary);
+  margin-bottom: 30px;
+}
+
+.role-select {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.role-vs {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+
+.role-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 30px;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+  font-family: inherit;
+  color: var(--text-primary);
+}
+
+.role-card .role-icon {
+  font-size: 2.5rem;
+}
+
+.role-card .role-name {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.role-card .role-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.role-card[data-role="harry"].selected {
+  border-color: var(--harry-gold);
+  box-shadow: 0 0 20px rgba(212, 160, 23, 0.25);
+  background: var(--harry-bg);
+}
+
+.role-card[data-role="voldemort"].selected {
+  border-color: var(--voldy-green);
+  box-shadow: 0 0 20px rgba(46, 204, 64, 0.25);
+  background: var(--voldy-bg);
+}
+
+.role-card:hover {
+  border-color: var(--text-secondary);
+}
+
+.difficulty-select {
+  margin-bottom: 25px;
+}
+
+.difficulty-select label {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.difficulty-select select {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 10px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  min-width: 220px;
+}
+
+.difficulty-select select:focus {
+  outline: none;
+  border-color: var(--purple-accent);
+}
+
+/* ── Game Header ──────────────────────────────────────── */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: var(--board-size);
+  max-width: 100%;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  min-width: 0;
+}
+
+.player-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.player-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.player-name {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.player-score {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.player-goal {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.harry-info {
+  border-color: rgba(212, 160, 23, 0.3);
+}
+
+.harry-info .player-name {
+  color: var(--harry-gold);
+}
+
+.voldemort-info {
+  border-color: rgba(46, 204, 64, 0.3);
+}
+
+.voldemort-info .player-name {
+  color: var(--voldy-green);
+}
+
+.turn-indicator {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: center;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: color 0.3s, background 0.3s;
+}
+
+.turn-indicator.turn-harry {
+  color: var(--harry-gold);
+  background: var(--harry-bg);
+}
+
+.turn-indicator.turn-voldemort {
+  color: var(--voldy-green);
+  background: var(--voldy-bg);
+}
+
+.turn-indicator.thinking {
+  color: var(--text-muted);
+  animation: thinkPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes thinkPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ── Shooting Stars ───────────────────────────────────── */
+.hogwarts-bg::before {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #ffd700;
+  border-radius: 50%;
+  top: 8%;
+  left: -5%;
+  box-shadow: 0 0 6px 2px rgba(255, 215, 0, 0.6);
+  animation: shootingStar 8s ease-in infinite;
+  animation-delay: 3s;
+  opacity: 0;
+}
+
+.hogwarts-bg::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 50%;
+  top: 15%;
+  right: -5%;
+  box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.6);
+  animation: shootingStar2 12s ease-in infinite;
+  animation-delay: 7s;
+  opacity: 0;
+}
+
+@keyframes shootingStar {
+  0% { transform: translateX(0) translateY(0); opacity: 0; }
+  5% { opacity: 1; }
+  30% { transform: translateX(40vw) translateY(15vh); opacity: 0.8; }
+  35% { opacity: 0; }
+  100% { opacity: 0; transform: translateX(40vw) translateY(15vh); }
+}
+
+@keyframes shootingStar2 {
+  0% { transform: translateX(0) translateY(0); opacity: 0; }
+  3% { opacity: 1; }
+  25% { transform: translateX(-35vw) translateY(12vh); opacity: 0.7; }
+  30% { opacity: 0; }
+  100% { opacity: 0; transform: translateX(-35vw) translateY(12vh); }
+}
+
+/* ── Ultimate Board ───────────────────────────────────── */
+.board-wrapper {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+/* Magical glow behind the board */
+.board-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(var(--board-size) + 16px);
+  height: calc(var(--board-size) + 16px);
+  border-radius: 14px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(108, 63, 160, 0.15) 0%,
+    rgba(108, 63, 160, 0.05) 40%,
+    transparent 70%
+  );
+  z-index: -1;
+  animation: boardAura 4s ease-in-out infinite alternate;
+}
+
+@keyframes boardAura {
+  0% { opacity: 0.5; filter: blur(8px); }
+  100% { opacity: 0.8; filter: blur(12px); }
+}
+
+.ultimate-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+  width: var(--board-size);
+  height: var(--board-size);
+  padding: 10px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow:
+    0 0 40px rgba(0, 0, 0, 0.5),
+    inset 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Mini Board ───────────────────────────────────────── */
+.mini-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  padding: 3px;
+  background: var(--parchment);
+  border-radius: 4px;
+  position: relative;
+  transition: box-shadow 0.3s, opacity 0.3s;
+}
+
+.mini-board.active-target {
+  box-shadow: 0 0 12px 2px rgba(255, 215, 0, 0.35);
+}
+
+.mini-board.inactive-target {
+  opacity: 0.45;
+}
+
+.mini-board.won-harry {
+  box-shadow: 0 0 18px 4px rgba(212, 160, 23, 0.5);
+}
+
+.mini-board.won-voldemort {
+  box-shadow: 0 0 18px 4px rgba(46, 204, 64, 0.5);
+}
+
+.mini-board.board-draw {
+  opacity: 0.5;
+}
+
+/* ── Cells ────────────────────────────────────────────── */
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-cell);
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: calc(var(--board-size) / 18);
+  transition: background 0.2s, transform 0.1s;
+  user-select: none;
+  position: relative;
+}
+
+.cell:hover:not(.taken) {
+  background: var(--bg-cell-hover);
+}
+
+.cell:active:not(.taken) {
+  transform: scale(0.95);
+}
+
+.cell.taken {
+  cursor: default;
+}
+
+.cell.harry-mark::after {
+  content: '\26A1'; /* lightning bolt */
+  color: var(--harry-mark);
+  text-shadow: 0 0 6px var(--harry-glow);
+}
+
+.cell.voldemort-mark::after {
+  content: '\2620'; /* skull */
+  color: var(--voldy-mark);
+  text-shadow: 0 0 6px var(--voldy-glow);
+}
+
+.cell.mark-appear::after {
+  animation: markAppear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes markAppear {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ── Board Overlay (won/draw state) ───────────────────── */
+.board-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: calc(var(--board-size) / 10);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: 2;
+}
+
+.board-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+  animation: overlayAppear 0.5s ease-out;
+}
+
+.won-harry .board-overlay.active {
+  background: radial-gradient(circle, rgba(212, 160, 23, 0.4) 0%, rgba(212, 160, 23, 0.15) 100%);
+  text-shadow: 0 0 20px var(--harry-glow);
+  color: var(--harry-gold);
+}
+
+.won-voldemort .board-overlay.active {
+  background: radial-gradient(circle, rgba(46, 204, 64, 0.35) 0%, rgba(13, 59, 26, 0.4) 100%);
+  text-shadow: 0 0 20px var(--voldy-glow);
+  color: var(--voldy-green);
+}
+
+.board-draw .board-overlay.active {
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--text-muted);
+}
+
+@keyframes overlayAppear {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── Shield Overlay ───────────────────────────────────── */
+.shield-overlay {
+  position: absolute;
+  inset: -2px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: 3;
+}
+
+.shield-overlay.active {
+  opacity: 1;
+  border: 2px solid rgba(192, 192, 255, 0.5);
+  background: radial-gradient(circle, rgba(192, 192, 255, 0.1) 0%, transparent 70%);
+  box-shadow: 0 0 15px rgba(192, 192, 255, 0.3), inset 0 0 15px rgba(192, 192, 255, 0.1);
+  animation: shieldShimmer 2s ease-in-out infinite;
+}
+
+.shield-overlay.active::after {
+  content: attr(data-turns) ' turns';
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.55rem;
+  font-family: var(--font-heading);
+  color: rgba(192, 192, 255, 0.8);
+  letter-spacing: 0.5px;
+}
+
+.shield-overlay.shield-cast {
+  animation: shieldCast 0.8s ease-out;
+}
+
+@keyframes shieldShimmer {
+  0%, 100% { border-color: rgba(192, 192, 255, 0.4); }
+  50% { border-color: rgba(192, 192, 255, 0.7); }
+}
+
+@keyframes shieldCast {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Spell Animations on Cells ────────────────────────── */
+.cell.spell-expelliarmus {
+  animation: expelliarmusAnim 0.6s ease-out;
+}
+
+@keyframes expelliarmusAnim {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-4px); }
+  20% { transform: translateX(4px); }
+  30% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  50% { transform: translateX(-2px); opacity: 1; }
+  80% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+.cell.spell-avadaKedavra {
+  animation: avadaAnim 0.7s ease-out;
+}
+
+@keyframes avadaAnim {
+  0% { box-shadow: inset 0 0 0 0 rgba(46, 204, 64, 0.8); }
+  40% { box-shadow: inset 0 0 30px 5px rgba(46, 204, 64, 0.8); background: rgba(46, 204, 64, 0.3); }
+  100% { box-shadow: inset 0 0 0 0 transparent; }
+}
+
+.cell.spell-darkMark {
+  animation: darkMarkAnim 0.5s ease-out;
+}
+
+@keyframes darkMarkAnim {
+  0% { filter: hue-rotate(0deg) brightness(1); }
+  50% { filter: hue-rotate(100deg) brightness(1.5); box-shadow: 0 0 15px rgba(46, 204, 64, 0.6); }
+  100% { filter: hue-rotate(0deg) brightness(1); }
+}
+
+.cell.avada-selected {
+  box-shadow: inset 0 0 12px rgba(46, 204, 64, 0.5);
+  background: rgba(46, 204, 64, 0.15) !important;
+}
+
+/* ── Spell Targeting Mode ─────────────────────────────── */
+.ultimate-board.targeting-expelliarmus .cell:not(.voldemort-mark) {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.ultimate-board.targeting-expelliarmus .cell.voldemort-mark {
+  cursor: crosshair;
+  animation: targetPulse 0.8s ease-in-out infinite;
+}
+
+.ultimate-board.targeting-darkMark .cell:not(.harry-mark) {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.ultimate-board.targeting-darkMark .cell.harry-mark {
+  cursor: crosshair;
+  animation: targetPulse 0.8s ease-in-out infinite;
+}
+
+.ultimate-board.targeting-avadaKedavra .cell.taken {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.ultimate-board.targeting-avadaKedavra .cell:not(.taken) {
+  cursor: crosshair;
+}
+
+.ultimate-board.targeting-patronus .mini-board {
+  cursor: crosshair;
+}
+
+/* Won boards should not be targetable in targeting mode */
+.ultimate-board.spell-targeting .mini-board.won-harry .cell,
+.ultimate-board.spell-targeting .mini-board.won-voldemort .cell,
+.ultimate-board.spell-targeting .mini-board.board-draw .cell {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+@keyframes targetPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  50% { box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.3); }
+}
+
+/* ── Spell Bar ────────────────────────────────────────── */
+.spell-bar {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  min-height: 50px;
+}
+
+.spell-group {
+  display: none;
+  gap: 10px;
+}
+
+.spell-group.visible {
+  display: flex;
+}
+
+.spell-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.25s;
+  position: relative;
+}
+
+.spell-btn .spell-icon {
+  font-size: 1.1rem;
+}
+
+.spell-btn.harry-spell {
+  border: 1.5px solid var(--harry-gold);
+  background: var(--harry-bg);
+  color: var(--harry-gold);
+}
+
+.spell-btn.harry-spell:hover:not(:disabled) {
+  box-shadow: 0 0 15px rgba(212, 160, 23, 0.3);
+  background: rgba(212, 160, 23, 0.15);
+}
+
+.spell-btn.voldemort-spell {
+  border: 1.5px solid var(--voldy-green);
+  background: var(--voldy-bg);
+  color: var(--voldy-green);
+}
+
+.spell-btn.voldemort-spell:hover:not(:disabled) {
+  box-shadow: 0 0 15px rgba(46, 204, 64, 0.3);
+  background: rgba(46, 204, 64, 0.15);
+}
+
+.spell-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.spell-btn.used {
+  text-decoration: line-through;
+  opacity: 0.25;
+}
+
+/* ── Spell Instructions ───────────────────────────────── */
+.spell-instructions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 10px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--purple-accent);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.spell-instructions[hidden] {
+  display: none;
+}
+
+/* ── Game Log ─────────────────────────────────────────── */
+.game-log {
+  width: var(--board-size);
+  max-width: 100%;
+  margin-top: 14px;
+  max-height: 120px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.log-entry {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 3px 8px;
+  border-left: 2px solid var(--border-color);
+  margin-bottom: 2px;
+  animation: logSlide 0.3s ease-out;
+}
+
+@keyframes logSlide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Game Over Screen ─────────────────────────────────── */
+#screen-gameover {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(10, 10, 21, 0.5) 0%,
+    rgba(10, 10, 21, 0.95) 100%
+  );
+}
+
+.result-container {
+  text-align: center;
+  z-index: 1;
+}
+
+.result-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 5vw, 2.8rem);
+  font-weight: 900;
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+}
+
+.result-title.harry-victory {
+  background: linear-gradient(180deg, #ffd700, #b8860b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 25px rgba(212, 160, 23, 0.5));
+  animation: victoryGlow 2s ease-in-out infinite alternate;
+}
+
+.result-title.voldemort-victory {
+  background: linear-gradient(180deg, #39ff14, #1a5c2a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 25px rgba(46, 204, 64, 0.5));
+  animation: defeatGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes victoryGlow {
+  from { filter: drop-shadow(0 0 15px rgba(212, 160, 23, 0.3)); }
+  to { filter: drop-shadow(0 0 35px rgba(212, 160, 23, 0.7)); }
+}
+
+@keyframes defeatGlow {
+  from { filter: drop-shadow(0 0 15px rgba(46, 204, 64, 0.3)); }
+  to { filter: drop-shadow(0 0 35px rgba(46, 204, 64, 0.7)); }
+}
+
+.result-desc {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: 30px;
+  max-width: 400px;
+}
+
+.result-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Rules Modal ──────────────────────────────────────── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.active {
+  display: flex;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 520px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.modal-content h2 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--harry-gold);
+  margin-bottom: 20px;
+}
+
+.modal-content h3 {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-top: 18px;
+  margin-bottom: 8px;
+}
+
+.modal-content p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root {
+    --board-size: min(94vw, 480px);
+  }
+
+  .game-header {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .player-info {
+    padding: 6px 10px;
+  }
+
+  .player-icon {
+    font-size: 1.3rem;
+  }
+
+  .player-name {
+    font-size: 0.75rem;
+  }
+
+  .turn-indicator {
+    order: -1;
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+  }
+
+  .spell-bar {
+    flex-wrap: wrap;
+  }
+
+  .castle-silhouette {
+    max-height: 25vh;
+  }
+
+  .deathly-hallows {
+    width: 180px;
+    height: 180px;
+  }
+
+  .mist {
+    height: 100px;
+    filter: blur(30px);
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --board-size: min(98vw, 370px);
+  }
+
+  .ultimate-board {
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .mini-board {
+    gap: 1px;
+    padding: 2px;
+  }
+
+  .cell {
+    font-size: calc(var(--board-size) / 22);
+  }
+
+  .spell-btn .spell-name {
+    display: none;
+  }
+
+  .game-log {
+    display: none;
+  }
+
+  .game-header {
+    width: 100%;
+  }
+
+  .player-goal {
+    display: none;
+  }
+
+  .role-select {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .role-vs {
+    display: none;
+  }
+}
