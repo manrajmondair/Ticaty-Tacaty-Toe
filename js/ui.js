@@ -43,7 +43,8 @@ let app = {
   },
   lastOnlineMatchId: null,
   previousScreenBeforeLeaderboard: 'screen-title',
-  disconnectTimeoutId: null
+  disconnectTimeoutId: null,
+  screenTransitionTimeoutId: null
 };
 
 function el(id) {
@@ -63,17 +64,25 @@ function closeRulesModal() {
 }
 
 function showScreen(screenId) {
-  if (getCurrentScreenId() === 'screen-game' && screenId !== 'screen-game') {
+  const currentScreenId = getCurrentScreenId();
+  if (currentScreenId === screenId) return;
+
+  if (currentScreenId === 'screen-game' && screenId !== 'screen-game') {
     cancelSpell(true);
   }
 
   document.querySelectorAll('.screen').forEach(screen => {
-    screen.classList.remove('active');
+    screen.classList.remove('active', 'is-entering');
   });
 
   const nextScreen = el(screenId);
   if (nextScreen) {
-    nextScreen.classList.add('active');
+    document.body.classList.toggle('in-game-screen', screenId === 'screen-game');
+    nextScreen.classList.add('active', 'is-entering');
+    clearTimeout(app.screenTransitionTimeoutId);
+    app.screenTransitionTimeoutId = setTimeout(() => {
+      nextScreen.classList.remove('is-entering');
+    }, 520);
   }
 }
 
@@ -140,6 +149,12 @@ function updatePlayerHeaderNames() {
 function updateTitleActions() {
   const rematchButton = el('btn-rematch');
   rematchButton.textContent = app.mode === 'online' ? 'Back to Lobby' : 'Rematch';
+}
+
+function updateGameExitButton() {
+  const exitButton = el('btn-game-exit');
+  if (!exitButton) return;
+  exitButton.textContent = app.mode === 'online' ? 'Back to Lobby' : 'Main Menu';
 }
 
 function getDisplayRank(uid) {
@@ -210,14 +225,14 @@ function updateOnlinePanels() {
   const upgradeCard = el('online-upgrade-card');
 
   availability.textContent = state.available
-    ? 'Free guest play, ranked matchmaking, reconnect support, and the global ladder are ready.'
-    : 'Online mode is disabled until the Firebase environment variables are added to this deployment.';
+    ? 'Find an opponent, duel for rank, and return anytime to finish an active match.'
+    : 'Online duels are unavailable right now.';
 
   error.hidden = !state.error;
   error.textContent = state.error || '';
 
   if (!state.available) {
-    authStatus.textContent = 'Firebase is not configured yet.';
+    authStatus.textContent = 'Online duels are sleeping right now.';
     profileName.textContent = '-';
     profileRating.textContent = '-';
     profileRecord.textContent = '-';
@@ -306,7 +321,7 @@ function updateMatchStatusBar() {
   }
 
   if (app.actionPending) {
-    text.textContent = 'Sending your move to the server...';
+    text.textContent = 'Casting your move into the duel...';
     clearDisconnectTimer();
     return;
   }
@@ -439,7 +454,7 @@ function updateTurnIndicator() {
   }
 
   if (app.actionPending) {
-    indicator.textContent = 'The spell is travelling to the server...';
+    indicator.textContent = 'The spell is in motion...';
     indicator.className = 'turn-indicator thinking';
     return;
   }
@@ -478,6 +493,7 @@ function updateUI() {
   updateSpellButtons(state);
   updateMatchStatusBar();
   updateTitleActions();
+  updateGameExitButton();
 }
 
 function formatActionLogEntry(action, match = null) {
@@ -1033,6 +1049,20 @@ async function handleRematchClick() {
   openOnlineLobby();
 }
 
+function handleGameExitClick() {
+  cancelSpell(true);
+
+  if (app.mode === 'online') {
+    showScreen('screen-online');
+    updateOnlinePanels();
+    return;
+  }
+
+  app.mode = null;
+  clearDisconnectTimer();
+  showScreen('screen-title');
+}
+
 function wireEventListeners() {
   el('btn-pvp').addEventListener('click', () => {
     app.mode = 'pvp';
@@ -1079,6 +1109,7 @@ function wireEventListeners() {
   });
 
   el('spell-cancel').addEventListener('click', () => cancelSpell());
+  el('btn-game-exit').addEventListener('click', handleGameExitClick);
   document.addEventListener('keydown', event => {
     if (event.key !== 'Escape') return;
 
@@ -1140,5 +1171,6 @@ export function initUI() {
   updateOnlinePanels();
   renderLeaderboard();
   updateTitleActions();
+  updateGameExitButton();
   resetPlayerHeader();
 }

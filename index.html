@@ -83,26 +83,6 @@
             Harry needs three captured boards in a row. Voldemort only needs five total.
             Every move redirects the next board, and every duel is shaped by four once-per-game spells.
           </p>
-          <div class="title-badges" aria-label="Game highlights">
-            <span class="title-badge">Asymmetric win conditions</span>
-            <span class="title-badge">4 one-use spells</span>
-            <span class="title-badge">Free ranked online play</span>
-          </div>
-        </div>
-
-        <div class="title-highlights">
-          <article class="highlight-card">
-            <span class="highlight-value">9</span>
-            <span class="highlight-label">linked mini-boards that drive the next turn</span>
-          </article>
-          <article class="highlight-card">
-            <span class="highlight-value">3</span>
-            <span class="highlight-label">ways to play: local duel, AI duel, and ranked online</span>
-          </article>
-          <article class="highlight-card">
-            <span class="highlight-value">1</span>
-            <span class="highlight-label">shared rules engine used by the UI, AI, and online server</span>
-          </article>
         </div>
       </div>
 
@@ -128,9 +108,7 @@
           <button id="btn-how-to-play" class="btn-magic btn-secondary btn-inline">How to Play</button>
         </div>
 
-        <p class="title-menu-note">
-          Online play stays free on Vercel Hobby and Firebase Spark, with guest sessions that can be upgraded into permanent accounts.
-        </p>
+        <p class="title-menu-note">Pick a mode, choose your side, and start dueling.</p>
       </div>
     </div>
   </section>
@@ -180,12 +158,6 @@
         <button id="btn-online-main-menu" class="btn-magic btn-secondary">Main Menu</button>
       </div>
 
-      <div class="panel-chip-row" aria-label="Ranked online notes">
-        <span class="info-chip">Guest accounts can queue instantly</span>
-        <span class="info-chip">Roles are assigned randomly every match</span>
-        <span class="info-chip">Only permanent accounts appear publicly on the ladder</span>
-      </div>
-
       <div class="online-grid online-grid-primary">
         <section class="panel-card">
           <h3>Your Wizarding Profile</h3>
@@ -220,11 +192,7 @@
             <button id="btn-online-leave" class="btn-magic btn-secondary">Leave Queue</button>
             <button id="btn-online-resume" class="btn-magic btn-secondary">Resume Match</button>
           </div>
-          <ul class="panel-rule-list">
-            <li>Queue into one shared ranked pool.</li>
-            <li>Reconnect to the same match if you refresh or disconnect briefly.</li>
-            <li>Dueling Rating updates only after the server validates the result.</li>
-          </ul>
+          <p class="panel-copy">Jump into the queue for a random opponent, then return here anytime to resume an unfinished duel.</p>
         </section>
       </div>
 
@@ -285,12 +253,6 @@
         <button id="btn-leaderboard-back" class="btn-magic btn-secondary">Back</button>
       </div>
 
-      <div class="panel-chip-row" aria-label="Leaderboard notes">
-        <span class="info-chip">Permanent accounts only</span>
-        <span class="info-chip">Dueling Rating starts at 1000</span>
-        <span class="info-chip">Wins, losses, draws, and streaks are tracked globally</span>
-      </div>
-
       <div class="leaderboard-table-wrap">
         <table class="leaderboard-table">
           <thead>
@@ -311,6 +273,10 @@
 
   <!-- ═══════════ GAME SCREEN ═══════════ -->
   <section id="screen-game" class="screen">
+    <div class="game-topbar">
+      <button id="btn-game-exit" class="btn-magic btn-secondary btn-small">Main Menu</button>
+    </div>
+
     <header class="game-header">
       <div class="player-info harry-info">
         <span class="player-icon">&#9889;</span>
@@ -348,11 +314,6 @@
     </div>
 
     <div class="game-tools panel-card">
-      <div class="game-tools-header">
-        <h3>Spellbook</h3>
-        <p class="panel-copy">Casting a spell spends your turn and can completely swing the board state.</p>
-      </div>
-
       <div class="spell-bar" id="spell-bar">
         <div class="spell-group harry-spells" id="harry-spells">
           <button class="spell-btn harry-spell" id="spell-expelliarmus" data-spell="expelliarmus" title="Remove one of Voldemort's marks from any active board">
@@ -380,10 +341,6 @@
         <p id="spell-instructions-text"></p>
         <button id="spell-cancel" class="btn-magic btn-small">Cancel</button>
       </div>
-    </div>
-
-    <div class="game-log-shell panel-card">
-      <div class="game-log-heading">Chronicle of the Duel</div>
       <div class="game-log" id="game-log"></div>
     </div>
   </section>
