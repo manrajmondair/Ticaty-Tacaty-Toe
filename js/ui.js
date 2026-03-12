@@ -78,6 +78,10 @@ function showScreen(screenId) {
   const nextScreen = el(screenId);
   if (nextScreen) {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    nextScreen.scrollTop = 0;
+    nextScreen.querySelectorAll('.screen-scroll-shell').forEach(shell => {
+      shell.scrollTop = 0;
+    });
     document.body.classList.toggle('in-game-screen', screenId === 'screen-game');
     document.body.classList.remove('screen-transitioning');
     void document.body.offsetWidth;
