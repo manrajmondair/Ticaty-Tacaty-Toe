@@ -76,6 +76,20 @@ body::after {
   );
 }
 
+body::before {
+  content: '';
+  position: fixed;
+  inset: -12%;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 14% 45%, rgba(186, 216, 255, 0.2), transparent 20%),
+    radial-gradient(circle at 78% 40%, rgba(255, 215, 0, 0.16), transparent 18%),
+    linear-gradient(112deg, transparent 26%, rgba(255, 215, 0, 0.14) 48%, rgba(255, 255, 255, 0.08) 52%, transparent 68%);
+  transform: translateX(-22%) scale(1.04);
+}
+
 body {
   font-family: var(--font-body);
   background: var(--bg-primary);
@@ -114,22 +128,10 @@ body {
 
 .screen.active {
   display: flex;
-  animation: fadeIn 0.4s ease-out;
 }
 
 .screen.is-entering {
-  animation: pageMaterialize 0.52s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.screen.is-entering::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(115deg, transparent 0%, rgba(255, 215, 0, 0.12) 40%, rgba(255, 255, 255, 0.08) 50%, transparent 66%);
-  mix-blend-mode: screen;
-  animation: wandSweep 0.56s ease-out;
+  animation: screenDriftIn 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #screen-title {
@@ -138,38 +140,44 @@ body {
   padding-bottom: 48px;
 }
 
+#screen-online,
+#screen-leaderboard {
+  justify-content: flex-start;
+  padding-top: 18px;
+  padding-bottom: 28px;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pageMaterialize {
+body.screen-transitioning::before {
+  animation: flooSweep 0.36s ease-out;
+}
+
+@keyframes flooSweep {
   0% {
     opacity: 0;
-    filter: blur(18px) saturate(0.75);
-    transform: translateY(24px) scale(0.985);
+    transform: translateX(-20%) scale(1.04);
   }
-  55% {
-    opacity: 1;
+  22% {
+    opacity: 0.95;
   }
   100% {
-    opacity: 1;
-    filter: blur(0) saturate(1);
-    transform: translateY(0) scale(1);
+    opacity: 0;
+    transform: translateX(18%) scale(1);
   }
 }
 
-@keyframes wandSweep {
+@keyframes screenDriftIn {
   0% {
     opacity: 0;
-    transform: translateX(-35%) skewX(-18deg);
-  }
-  28% {
-    opacity: 1;
+    transform: translateY(12px);
   }
   100% {
-    opacity: 0;
-    transform: translateX(70%) skewX(-18deg);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -752,17 +760,18 @@ body {
 
 /* ── Game Header ──────────────────────────────────────── */
 .game-topbar {
-  width: var(--board-size);
+  width: min(92vw, 760px);
   max-width: 100%;
   display: flex;
   justify-content: flex-end;
 }
 
 .game-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: 'harry turn voldemort';
   align-items: center;
-  justify-content: space-between;
-  width: var(--board-size);
+  width: min(92vw, 760px);
   max-width: 100%;
   gap: 12px;
 }
@@ -771,11 +780,24 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 14px;
+  width: 100%;
+  padding: 10px 14px;
   border-radius: 8px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   min-width: 0;
+}
+
+.harry-info {
+  grid-area: harry;
+  justify-self: start;
+  border-color: rgba(212, 160, 23, 0.3);
+}
+
+.voldemort-info {
+  grid-area: voldemort;
+  justify-self: end;
+  border-color: rgba(46, 204, 64, 0.3);
 }
 
 .player-icon {
@@ -786,37 +808,39 @@ body {
 .player-details {
   display: flex;
   flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
 .player-name {
   font-family: var(--font-heading);
-  font-size: 0.85rem;
+  font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .player-score {
   font-size: 0.8rem;
   color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .player-goal {
   font-size: 0.7rem;
   color: var(--text-muted);
   font-style: italic;
-}
-
-.harry-info {
-  border-color: rgba(212, 160, 23, 0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .harry-info .player-name {
   color: var(--harry-gold);
-}
-
-.voldemort-info {
-  border-color: rgba(46, 204, 64, 0.3);
 }
 
 .voldemort-info .player-name {
@@ -824,6 +848,7 @@ body {
 }
 
 .turn-indicator {
+  grid-area: turn;
   font-family: var(--font-heading);
   font-size: 0.9rem;
   font-weight: 700;
@@ -1212,7 +1237,7 @@ body {
 
 /* ── Spell Bar ────────────────────────────────────────── */
 .game-tools {
-  width: var(--board-size);
+  width: min(92vw, 760px);
   max-width: 100%;
   position: relative;
   z-index: 1;
@@ -1685,7 +1710,7 @@ body {
 }
 
 .match-status-bar {
-  width: var(--board-size);
+  width: min(92vw, 760px);
   max-width: 100%;
   display: flex;
   justify-content: space-between;
@@ -1752,8 +1777,10 @@ body {
   }
 
   .game-header {
-    flex-wrap: wrap;
-    justify-content: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      'turn turn'
+      'harry voldemort';
   }
 
   .player-info {
@@ -1765,14 +1792,14 @@ body {
   }
 
   .player-name {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
   }
 
   .turn-indicator {
-    order: -1;
     width: 100%;
     text-align: center;
     font-size: 0.8rem;
+    justify-self: stretch;
   }
 
   .spell-bar {
@@ -1784,6 +1811,12 @@ body {
   .spell-instructions {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  #screen-online .panel-topline .btn-magic,
+  #screen-leaderboard .panel-topline .btn-magic {
+    width: 100%;
+    max-width: 260px;
   }
 
   .online-grid {
@@ -1841,6 +1874,10 @@ body {
 
   .player-goal {
     display: none;
+  }
+
+  .player-score {
+    font-size: 0.74rem;
   }
 
   .role-select {

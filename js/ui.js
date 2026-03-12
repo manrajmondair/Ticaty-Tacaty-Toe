@@ -77,12 +77,17 @@ function showScreen(screenId) {
 
   const nextScreen = el(screenId);
   if (nextScreen) {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     document.body.classList.toggle('in-game-screen', screenId === 'screen-game');
+    document.body.classList.remove('screen-transitioning');
+    void document.body.offsetWidth;
+    document.body.classList.add('screen-transitioning');
     nextScreen.classList.add('active', 'is-entering');
     clearTimeout(app.screenTransitionTimeoutId);
     app.screenTransitionTimeoutId = setTimeout(() => {
       nextScreen.classList.remove('is-entering');
-    }, 520);
+      document.body.classList.remove('screen-transitioning');
+    }, 360);
   }
 }
 
@@ -138,12 +143,8 @@ function updatePlayerHeaderNames() {
   const harryPlayer = harryUid ? match.players?.[harryUid] : null;
   const voldemortPlayer = voldemortUid ? match.players?.[voldemortUid] : null;
 
-  el('harry-name').textContent = harryPlayer
-    ? `${harryPlayer.displayName} as Harry`
-    : 'Harry';
-  el('voldemort-name').textContent = voldemortPlayer
-    ? `${voldemortPlayer.displayName} as Voldemort`
-    : 'Voldemort';
+  el('harry-name').textContent = harryPlayer?.displayName || 'Harry';
+  el('voldemort-name').textContent = voldemortPlayer?.displayName || 'Voldemort';
 }
 
 function updateTitleActions() {
@@ -488,8 +489,8 @@ function updateUI() {
   updatePlayerHeaderNames();
   el('harry-boards').textContent = state.boardWinners.filter(value => value === HARRY).length;
   el('voldemort-boards').textContent = state.boardWinners.filter(value => value === VOLDEMORT).length;
-  el('harry-goal').textContent = '3 in a row';
-  el('voldemort-goal').textContent = '5 of 9';
+  el('harry-goal').textContent = app.mode === 'online' ? 'Harry • 3 in a row' : '3 in a row';
+  el('voldemort-goal').textContent = app.mode === 'online' ? 'Voldemort • 5 of 9' : '5 of 9';
   updateSpellButtons(state);
   updateMatchStatusBar();
   updateTitleActions();
