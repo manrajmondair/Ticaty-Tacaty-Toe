@@ -1750,8 +1750,29 @@ body.screen-transitioning::before {
     --board-size: min(94vw, 480px);
   }
 
+  .screen {
+    padding: 18px 16px;
+  }
+
   #screen-game {
     --board-size: min(50vh, 94vw, 430px);
+  }
+
+  #screen-title {
+    padding-top: 20px;
+    padding-bottom: 28px;
+  }
+
+  #screen-online,
+  #screen-leaderboard {
+    padding-top: 14px;
+    padding-bottom: 22px;
+  }
+
+  .title-layout,
+  .online-shell,
+  .leaderboard-shell {
+    gap: 18px;
   }
 
   .title-container,
@@ -1768,12 +1789,110 @@ body.screen-transitioning::before {
     justify-content: center;
   }
 
+  .title-kicker,
+  .section-kicker,
+  .menu-eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 1.4px;
+  }
+
   .title-story,
   .title-menu-card,
   .setup-shell,
   .result-container,
   .game-tools {
-    padding: 24px;
+    padding: 20px;
+  }
+
+  .title-emblem {
+    margin-bottom: 14px;
+  }
+
+  .game-title {
+    font-size: clamp(2.3rem, 12vw, 3.6rem);
+    letter-spacing: 1.2px;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    margin-bottom: 14px;
+  }
+
+  .title-intro {
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .btn-magic {
+    min-width: 0;
+  }
+
+  .btn-menu {
+    padding: 16px 18px;
+  }
+
+  .btn-label {
+    font-size: 1rem;
+  }
+
+  .btn-hint {
+    font-size: 0.84rem;
+    line-height: 1.4;
+  }
+
+  .title-menu-note {
+    margin-top: 14px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .setup-heading {
+    font-size: clamp(1.55rem, 7vw, 1.95rem);
+    line-height: 1.08;
+  }
+
+  .setup-copy,
+  .panel-copy {
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .role-select {
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .role-card {
+    flex: 1 1 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 18px 18px;
+  }
+
+  .role-card .role-icon {
+    font-size: 2.1rem;
+  }
+
+  .role-card .role-name {
+    font-size: 1rem;
+  }
+
+  .difficulty-select {
+    margin-bottom: 20px;
+  }
+
+  .difficulty-select select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .setup-actions {
+    gap: 10px;
+  }
+
+  .setup-actions .btn-magic {
+    flex: 1 1 100%;
+    width: 100%;
   }
 
   .game-header {
@@ -1813,6 +1932,14 @@ body.screen-transitioning::before {
     align-items: flex-start;
   }
 
+  .panel-topline {
+    gap: 12px;
+  }
+
+  .panel-topline > div {
+    width: 100%;
+  }
+
   #screen-online .panel-topline .btn-magic,
   #screen-leaderboard .panel-topline .btn-magic {
     width: 100%;
@@ -1821,6 +1948,17 @@ body.screen-transitioning::before {
 
   .online-grid {
     grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .online-actions {
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .online-actions .btn-magic {
+    width: 100%;
+    min-width: 0;
   }
 
   .castle-silhouette {
@@ -1838,20 +1976,200 @@ body.screen-transitioning::before {
   }
 }
 
+@media (max-width: 640px) {
+  .leaderboard-table-wrap {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .leaderboard-table {
+    min-width: 0;
+  }
+
+  .leaderboard-table thead {
+    display: none;
+  }
+
+  .leaderboard-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .leaderboard-table tbody tr {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid rgba(232, 213, 183, 0.08);
+    border-radius: 14px;
+    background: rgba(26, 26, 46, 0.88);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+  }
+
+  .leaderboard-table tbody tr.is-you {
+    border-color: rgba(212, 160, 23, 0.22);
+    background: rgba(212, 160, 23, 0.08);
+  }
+
+  .leaderboard-table tbody tr:hover {
+    background: rgba(26, 26, 46, 0.92);
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 0;
+  }
+
+  .leaderboard-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    border: none;
+    text-align: right;
+    font-size: 0.95rem;
+  }
+
+  .leaderboard-table td::before {
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .leaderboard-table td:nth-child(1)::before {
+    content: 'Rank';
+  }
+
+  .leaderboard-table td:nth-child(2)::before {
+    content: 'Player';
+  }
+
+  .leaderboard-table td:nth-child(3)::before {
+    content: 'Rating';
+  }
+
+  .leaderboard-table td:nth-child(4)::before {
+    content: 'Record';
+  }
+
+  .leaderboard-table td:nth-child(5)::before {
+    content: 'Best Streak';
+  }
+
+  .leaderboard-table td:nth-child(1) {
+    color: var(--harry-gold);
+    font-family: var(--font-heading);
+    font-size: 1rem;
+  }
+
+  .leaderboard-table td:nth-child(2) {
+    color: var(--text-primary);
+    font-size: 1rem;
+  }
+}
+
 @media (max-width: 480px) {
   :root {
     --board-size: min(98vw, 370px);
   }
 
+  .screen {
+    padding: 14px 12px;
+  }
+
   #screen-game {
     --board-size: min(44vh, 96vw, 320px);
-    padding: 8px 10px 10px;
+    padding: 8px 8px 10px;
     gap: 8px;
   }
 
   #screen-title {
+    padding-top: 16px;
     padding-left: 14px;
     padding-right: 14px;
+  }
+
+  #screen-online,
+  #screen-leaderboard {
+    padding-top: 12px;
+  }
+
+  .title-layout {
+    gap: 14px;
+  }
+
+  .title-story,
+  .title-menu-card,
+  .setup-shell,
+  .result-container,
+  .game-tools,
+  .panel-card {
+    padding: 16px;
+  }
+
+  .title-emblem svg {
+    width: 64px;
+    height: 70px;
+  }
+
+  .game-title {
+    font-size: clamp(2rem, 13vw, 2.9rem);
+    letter-spacing: 1px;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .title-intro {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .menu-buttons {
+    gap: 10px;
+  }
+
+  .btn-magic {
+    padding: 12px 18px;
+    letter-spacing: 1.1px;
+  }
+
+  .btn-menu {
+    padding: 14px 16px;
+    gap: 4px;
+  }
+
+  .btn-label {
+    font-size: 0.94rem;
+  }
+
+  .btn-hint {
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .btn-inline,
+  .btn-small {
+    font-size: 0.74rem;
+  }
+
+  .title-menu-note {
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+
+  .setup-heading {
+    font-size: 1.45rem;
+    margin-bottom: 10px;
+  }
+
+  .setup-copy {
+    margin-bottom: 20px;
+    font-size: 0.9rem;
   }
 
   .ultimate-board {
@@ -1872,12 +2190,37 @@ body.screen-transitioning::before {
     width: 100%;
   }
 
+  .game-topbar,
+  .match-status-bar,
+  .game-tools {
+    width: 100%;
+  }
+
+  .turn-indicator {
+    font-size: 0.76rem;
+    padding: 6px 10px;
+  }
+
+  .player-info {
+    padding: 6px 8px;
+    gap: 8px;
+  }
+
+  .player-icon {
+    font-size: 1.2rem;
+  }
+
+  .player-name {
+    font-size: 0.72rem;
+    letter-spacing: 0.6px;
+  }
+
   .player-goal {
     display: none;
   }
 
   .player-score {
-    font-size: 0.74rem;
+    font-size: 0.68rem;
   }
 
   .role-select {
@@ -1894,6 +2237,56 @@ body.screen-transitioning::before {
     min-width: 0;
   }
 
+  .role-card {
+    padding: 16px 14px;
+    gap: 6px;
+  }
+
+  .role-card .role-icon {
+    font-size: 1.8rem;
+  }
+
+  .role-card .role-name {
+    font-size: 0.95rem;
+  }
+
+  .role-card .role-desc {
+    font-size: 0.76rem;
+  }
+
+  .difficulty-select label {
+    font-size: 0.8rem;
+  }
+
+  .difficulty-select select {
+    font-size: 0.92rem;
+    padding: 10px 12px;
+  }
+
+  .panel-card h3 {
+    font-size: 1rem;
+  }
+
+  .panel-copy {
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+
+  .stat-list {
+    gap: 10px;
+    margin: 14px 0;
+  }
+
+  .stat-row {
+    padding-bottom: 8px;
+    font-size: 0.88rem;
+  }
+
+  .magic-form input {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
   .spell-group.visible {
     gap: 8px;
   }
@@ -1901,8 +2294,12 @@ body.screen-transitioning::before {
   .spell-btn {
     min-width: 0;
     flex: 1 1 calc(50% - 4px);
-    font-size: 0.7rem;
-    padding: 8px 10px;
+    font-size: 0.66rem;
+    padding: 8px 8px;
+  }
+
+  .spell-btn .spell-icon {
+    font-size: 1rem;
   }
 
   .setup-actions .btn-magic,
@@ -1910,12 +2307,65 @@ body.screen-transitioning::before {
     width: 100%;
   }
 
-  .panel-card {
-    padding: 18px;
+  .spell-instructions {
+    margin-top: 10px;
+    padding: 8px 10px;
+    font-size: 0.76rem;
+    gap: 8px;
   }
 
-  .leaderboard-table {
-    min-width: 520px;
+  .game-log {
+    margin-top: 8px;
+  }
+
+  .log-entry {
+    font-size: 0.72rem;
+    padding: 7px 9px;
+  }
+
+  .inline-error {
+    padding: 10px 12px;
+    font-size: 0.84rem;
+  }
+
+  .leaderboard-shell {
+    gap: 16px;
+  }
+
+  .leaderboard-table tbody tr {
+    padding: 14px;
+    gap: 8px;
+  }
+
+  .leaderboard-table td {
+    font-size: 0.9rem;
+  }
+
+  .modal-content {
+    width: calc(100vw - 24px);
+    padding: 24px 18px 18px;
+    max-height: 82vh;
+  }
+
+  .modal-content h2 {
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+  }
+
+  .modal-content h3 {
+    font-size: 0.92rem;
+    margin-top: 16px;
+  }
+
+  .modal-content p {
+    font-size: 0.82rem;
+    line-height: 1.55;
+  }
+
+  .modal-close {
+    top: 10px;
+    right: 12px;
+    font-size: 1.3rem;
   }
 }
 
