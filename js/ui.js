@@ -54,6 +54,14 @@ function getCurrentScreenId() {
   return document.querySelector('.screen.active')?.id || null;
 }
 
+function openRulesModal() {
+  el('rules-modal').classList.add('active');
+}
+
+function closeRulesModal() {
+  el('rules-modal').classList.remove('active');
+}
+
 function showScreen(screenId) {
   if (getCurrentScreenId() === 'screen-game' && screenId !== 'screen-game') {
     cancelSpell(true);
@@ -202,7 +210,7 @@ function updateOnlinePanels() {
   const upgradeCard = el('online-upgrade-card');
 
   availability.textContent = state.available
-    ? 'Free guest play, ranked matchmaking, and a global magical ladder are ready.'
+    ? 'Free guest play, ranked matchmaking, reconnect support, and the global ladder are ready.'
     : 'Online mode is disabled until the Firebase environment variables are added to this deployment.';
 
   error.hidden = !state.error;
@@ -256,6 +264,8 @@ function updateOnlinePanels() {
 
   queueButton.disabled = !state.profile || state.queueStatus === 'searching' || hasActiveMatch;
   leaveButton.disabled = state.queueStatus !== 'searching';
+  queueButton.hidden = state.queueStatus === 'searching' || hasActiveMatch;
+  leaveButton.hidden = state.queueStatus !== 'searching';
   resumeButton.hidden = !hasActiveMatch;
   signOutButton.hidden = !state.profile || state.profile.isGuest;
   upgradeCard.hidden = !state.profile?.isGuest;
@@ -1036,11 +1046,12 @@ function wireEventListeners() {
 
   el('btn-online').addEventListener('click', openOnlineLobby);
   el('btn-title-leaderboard').addEventListener('click', openLeaderboardScreen);
-  el('btn-how-to-play').addEventListener('click', () => {
-    el('rules-modal').classList.add('active');
-  });
-  el('close-rules').addEventListener('click', () => {
-    el('rules-modal').classList.remove('active');
+  el('btn-how-to-play').addEventListener('click', openRulesModal);
+  el('close-rules').addEventListener('click', closeRulesModal);
+  el('rules-modal').addEventListener('click', event => {
+    if (event.target === el('rules-modal')) {
+      closeRulesModal();
+    }
   });
 
   document.querySelectorAll('.role-card').forEach(button => {
@@ -1056,6 +1067,10 @@ function wireEventListeners() {
     app.difficulty = el('difficulty').value;
     startLocalGame();
   });
+  el('btn-setup-back').addEventListener('click', () => {
+    app.mode = null;
+    showScreen('screen-title');
+  });
 
   el('ultimate-board').addEventListener('click', handleCellClick);
 
@@ -1065,7 +1080,14 @@ function wireEventListeners() {
 
   el('spell-cancel').addEventListener('click', () => cancelSpell());
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && app.gameState?.castingSpell) {
+    if (event.key !== 'Escape') return;
+
+    if (el('rules-modal').classList.contains('active')) {
+      closeRulesModal();
+      return;
+    }
+
+    if (app.gameState?.castingSpell) {
       cancelSpell();
     }
   });

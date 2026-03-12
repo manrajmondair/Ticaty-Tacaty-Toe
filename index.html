@@ -66,31 +66,81 @@
   <!-- ═══════════ TITLE SCREEN ═══════════ -->
   <section id="screen-title" class="screen active">
     <div class="particles"></div>
-    <div class="title-container">
-      <!-- Deathly Hallows emblem -->
-      <div class="title-emblem">
-        <svg viewBox="0 0 100 110" width="80" height="88">
-          <circle cx="50" cy="48" r="16" fill="none" stroke="#ffd700" stroke-width="2" opacity="0.9"/>
-          <polygon points="50,12 18,95 82,95" fill="none" stroke="#ffd700" stroke-width="2" opacity="0.9"/>
-          <line x1="50" y1="12" x2="50" y2="95" stroke="#ffd700" stroke-width="2" opacity="0.9"/>
-        </svg>
+    <div class="title-layout">
+      <div class="title-story panel-card">
+        <div class="title-container">
+          <div class="title-emblem">
+            <svg viewBox="0 0 100 110" width="80" height="88">
+              <circle cx="50" cy="48" r="16" fill="none" stroke="#ffd700" stroke-width="2" opacity="0.9"/>
+              <polygon points="50,12 18,95 82,95" fill="none" stroke="#ffd700" stroke-width="2" opacity="0.9"/>
+              <line x1="50" y1="12" x2="50" y2="95" stroke="#ffd700" stroke-width="2" opacity="0.9"/>
+            </svg>
+          </div>
+          <p class="title-kicker">A wizarding twist on Ultimate Tic-Tac-Toe</p>
+          <h1 class="game-title">Horcrux Hunter</h1>
+          <p class="subtitle">An Asymmetric Wizard's Duel</p>
+          <p class="title-intro">
+            Harry needs three captured boards in a row. Voldemort only needs five total.
+            Every move redirects the next board, and every duel is shaped by four once-per-game spells.
+          </p>
+          <div class="title-badges" aria-label="Game highlights">
+            <span class="title-badge">Asymmetric win conditions</span>
+            <span class="title-badge">4 one-use spells</span>
+            <span class="title-badge">Free ranked online play</span>
+          </div>
+        </div>
+
+        <div class="title-highlights">
+          <article class="highlight-card">
+            <span class="highlight-value">9</span>
+            <span class="highlight-label">linked mini-boards that drive the next turn</span>
+          </article>
+          <article class="highlight-card">
+            <span class="highlight-value">3</span>
+            <span class="highlight-label">ways to play: local duel, AI duel, and ranked online</span>
+          </article>
+          <article class="highlight-card">
+            <span class="highlight-value">1</span>
+            <span class="highlight-label">shared rules engine used by the UI, AI, and online server</span>
+          </article>
+        </div>
       </div>
-      <h1 class="game-title">Horcrux Hunter</h1>
-      <p class="subtitle">An Asymmetric Wizard's Duel</p>
-      <div class="menu-buttons">
-        <button id="btn-pvp" class="btn-magic">Local Duel</button>
-        <button id="btn-ai" class="btn-magic">Face the Dark Lord</button>
-        <button id="btn-online" class="btn-magic">Online Duel</button>
-        <button id="btn-title-leaderboard" class="btn-magic btn-secondary">Leaderboard</button>
-        <button id="btn-how-to-play" class="btn-magic btn-secondary">How to Play</button>
+
+      <div class="title-menu-card panel-card">
+        <p class="menu-eyebrow">Choose your duel</p>
+        <div class="menu-buttons">
+          <button id="btn-pvp" class="btn-magic btn-menu">
+            <span class="btn-label">Local Duel</span>
+            <span class="btn-hint">Two players sharing the same screen</span>
+          </button>
+          <button id="btn-ai" class="btn-magic btn-menu">
+            <span class="btn-label">Face the Dark Lord</span>
+            <span class="btn-hint">Choose a role and challenge the AI</span>
+          </button>
+          <button id="btn-online" class="btn-magic btn-menu">
+            <span class="btn-label">Online Duel</span>
+            <span class="btn-hint">Ranked matchmaking, guest accounts, and a global ladder</span>
+          </button>
+        </div>
+
+        <div class="title-secondary-actions">
+          <button id="btn-title-leaderboard" class="btn-magic btn-secondary btn-inline">Leaderboard</button>
+          <button id="btn-how-to-play" class="btn-magic btn-secondary btn-inline">How to Play</button>
+        </div>
+
+        <p class="title-menu-note">
+          Online play stays free on Vercel Hobby and Firebase Spark, with guest sessions that can be upgraded into permanent accounts.
+        </p>
       </div>
     </div>
   </section>
 
   <!-- ═══════════ SETUP SCREEN ═══════════ -->
   <section id="screen-setup" class="screen">
-    <div class="setup-container">
+    <div class="setup-container setup-shell panel-card">
+      <p class="section-kicker">Single-player setup</p>
       <h2 class="setup-heading">Choose Your Side</h2>
+      <p class="setup-copy">Pick the role you want to control, set the AI difficulty, and start the duel.</p>
       <div class="role-select">
         <button class="role-card selected" data-role="harry">
           <span class="role-icon">&#9889;</span>
@@ -112,7 +162,10 @@
           <option value="hard" selected>Hard — Minimax AI</option>
         </select>
       </div>
-      <button id="btn-start-game" class="btn-magic">Begin the Duel</button>
+      <div class="setup-actions">
+        <button id="btn-setup-back" class="btn-magic btn-secondary">Main Menu</button>
+        <button id="btn-start-game" class="btn-magic">Begin the Duel</button>
+      </div>
     </div>
   </section>
 
@@ -127,7 +180,13 @@
         <button id="btn-online-main-menu" class="btn-magic btn-secondary">Main Menu</button>
       </div>
 
-      <div class="online-grid">
+      <div class="panel-chip-row" aria-label="Ranked online notes">
+        <span class="info-chip">Guest accounts can queue instantly</span>
+        <span class="info-chip">Roles are assigned randomly every match</span>
+        <span class="info-chip">Only permanent accounts appear publicly on the ladder</span>
+      </div>
+
+      <div class="online-grid online-grid-primary">
         <section class="panel-card">
           <h3>Your Wizarding Profile</h3>
           <p id="online-auth-status" class="panel-copy">Connecting...</p>
@@ -153,7 +212,7 @@
           <button id="btn-online-signout" class="btn-magic btn-secondary btn-small">Switch Account</button>
         </section>
 
-        <section class="panel-card">
+        <section class="panel-card panel-card-featured">
           <h3>Ranked Queue</h3>
           <p id="online-queue-status" class="panel-copy">Waiting for your wand to connect...</p>
           <div class="online-actions">
@@ -161,7 +220,11 @@
             <button id="btn-online-leave" class="btn-magic btn-secondary">Leave Queue</button>
             <button id="btn-online-resume" class="btn-magic btn-secondary">Resume Match</button>
           </div>
-          <p class="panel-copy">Sides are assigned randomly each match to keep the ranked ladder fair.</p>
+          <ul class="panel-rule-list">
+            <li>Queue into one shared ranked pool.</li>
+            <li>Reconnect to the same match if you refresh or disconnect briefly.</li>
+            <li>Dueling Rating updates only after the server validates the result.</li>
+          </ul>
         </section>
       </div>
 
@@ -222,6 +285,12 @@
         <button id="btn-leaderboard-back" class="btn-magic btn-secondary">Back</button>
       </div>
 
+      <div class="panel-chip-row" aria-label="Leaderboard notes">
+        <span class="info-chip">Permanent accounts only</span>
+        <span class="info-chip">Dueling Rating starts at 1000</span>
+        <span class="info-chip">Wins, losses, draws, and streaks are tracked globally</span>
+      </div>
+
       <div class="leaderboard-table-wrap">
         <table class="leaderboard-table">
           <thead>
@@ -278,44 +347,51 @@
       </div>
     </div>
 
-    <!-- Spell Bar -->
-    <div class="spell-bar" id="spell-bar">
-      <div class="spell-group harry-spells" id="harry-spells">
-        <button class="spell-btn harry-spell" id="spell-expelliarmus" data-spell="expelliarmus" title="Remove one of Voldemort's marks from any active board">
-          <span class="spell-icon">&#10024;</span>
-          <span class="spell-name">Expelliarmus</span>
-        </button>
-        <button class="spell-btn harry-spell" id="spell-patronus" data-spell="patronus" title="Shield a board — Voldemort cannot win it for 2 turns">
-          <span class="spell-icon">&#128737;</span>
-          <span class="spell-name">Patronus</span>
-        </button>
+    <div class="game-tools panel-card">
+      <div class="game-tools-header">
+        <h3>Spellbook</h3>
+        <p class="panel-copy">Casting a spell spends your turn and can completely swing the board state.</p>
       </div>
-      <div class="spell-group voldemort-spells" id="voldemort-spells">
-        <button class="spell-btn voldemort-spell" id="spell-avada" data-spell="avadaKedavra" title="Claim an empty cell AND an adjacent empty cell">
-          <span class="spell-icon">&#9889;</span>
-          <span class="spell-name">Avada Kedavra</span>
-        </button>
-        <button class="spell-btn voldemort-spell" id="spell-darkmark" data-spell="darkMark" title="Corrupt one of Harry's marks, making it yours">
-          <span class="spell-icon">&#9760;</span>
-          <span class="spell-name">Dark Mark</span>
-        </button>
+
+      <div class="spell-bar" id="spell-bar">
+        <div class="spell-group harry-spells" id="harry-spells">
+          <button class="spell-btn harry-spell" id="spell-expelliarmus" data-spell="expelliarmus" title="Remove one of Voldemort's marks from any active board">
+            <span class="spell-icon">&#10024;</span>
+            <span class="spell-name">Expelliarmus</span>
+          </button>
+          <button class="spell-btn harry-spell" id="spell-patronus" data-spell="patronus" title="Shield a board — Voldemort cannot win it for 2 turns">
+            <span class="spell-icon">&#128737;</span>
+            <span class="spell-name">Patronus</span>
+          </button>
+        </div>
+        <div class="spell-group voldemort-spells" id="voldemort-spells">
+          <button class="spell-btn voldemort-spell" id="spell-avada" data-spell="avadaKedavra" title="Claim an empty cell AND an adjacent empty cell">
+            <span class="spell-icon">&#9889;</span>
+            <span class="spell-name">Avada Kedavra</span>
+          </button>
+          <button class="spell-btn voldemort-spell" id="spell-darkmark" data-spell="darkMark" title="Corrupt one of Harry's marks, making it yours">
+            <span class="spell-icon">&#9760;</span>
+            <span class="spell-name">Dark Mark</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="spell-instructions" id="spell-instructions" hidden>
+        <p id="spell-instructions-text"></p>
+        <button id="spell-cancel" class="btn-magic btn-small">Cancel</button>
       </div>
     </div>
 
-    <!-- Spell Instructions Overlay -->
-    <div class="spell-instructions" id="spell-instructions" hidden>
-      <p id="spell-instructions-text"></p>
-      <button id="spell-cancel" class="btn-magic btn-small">Cancel</button>
+    <div class="game-log-shell panel-card">
+      <div class="game-log-heading">Chronicle of the Duel</div>
+      <div class="game-log" id="game-log"></div>
     </div>
-
-    <!-- Game Log -->
-    <div class="game-log" id="game-log"></div>
   </section>
 
   <!-- ═══════════ GAME OVER SCREEN ═══════════ -->
   <section id="screen-gameover" class="screen">
     <div class="particles"></div>
-    <div class="result-container">
+    <div class="result-container panel-card">
       <h2 id="result-title" class="result-title"></h2>
       <p id="result-desc" class="result-desc"></p>
       <div class="result-actions">
