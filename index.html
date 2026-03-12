@@ -80,6 +80,8 @@
       <div class="menu-buttons">
         <button id="btn-pvp" class="btn-magic">Local Duel</button>
         <button id="btn-ai" class="btn-magic">Face the Dark Lord</button>
+        <button id="btn-online" class="btn-magic">Online Duel</button>
+        <button id="btn-title-leaderboard" class="btn-magic btn-secondary">Leaderboard</button>
         <button id="btn-how-to-play" class="btn-magic btn-secondary">How to Play</button>
       </div>
     </div>
@@ -114,13 +116,137 @@
     </div>
   </section>
 
+  <!-- ═══════════ ONLINE LOBBY ═══════════ -->
+  <section id="screen-online" class="screen">
+    <div class="online-shell">
+      <div class="panel-topline">
+        <div>
+          <h2 class="setup-heading">Ranked Online Duel</h2>
+          <p class="panel-copy" id="online-availability"></p>
+        </div>
+        <button id="btn-online-main-menu" class="btn-magic btn-secondary">Main Menu</button>
+      </div>
+
+      <div class="online-grid">
+        <section class="panel-card">
+          <h3>Your Wizarding Profile</h3>
+          <p id="online-auth-status" class="panel-copy">Connecting...</p>
+          <div class="stat-list">
+            <div class="stat-row">
+              <span>Name</span>
+              <strong id="online-profile-name">-</strong>
+            </div>
+            <div class="stat-row">
+              <span>Dueling Rating</span>
+              <strong id="online-profile-rating">-</strong>
+            </div>
+            <div class="stat-row">
+              <span>Record</span>
+              <strong id="online-profile-record">-</strong>
+            </div>
+            <div class="stat-row">
+              <span>Global Rank</span>
+              <strong id="online-profile-rank">-</strong>
+            </div>
+          </div>
+          <p id="online-profile-note" class="panel-copy"></p>
+          <button id="btn-online-signout" class="btn-magic btn-secondary btn-small">Switch Account</button>
+        </section>
+
+        <section class="panel-card">
+          <h3>Ranked Queue</h3>
+          <p id="online-queue-status" class="panel-copy">Waiting for your wand to connect...</p>
+          <div class="online-actions">
+            <button id="btn-online-queue" class="btn-magic">Find Opponent</button>
+            <button id="btn-online-leave" class="btn-magic btn-secondary">Leave Queue</button>
+            <button id="btn-online-resume" class="btn-magic btn-secondary">Resume Match</button>
+          </div>
+          <p class="panel-copy">Sides are assigned randomly each match to keep the ranked ladder fair.</p>
+        </section>
+      </div>
+
+      <div class="online-grid">
+        <section class="panel-card" id="online-upgrade-card">
+          <h3>Upgrade Guest Account</h3>
+          <p class="panel-copy">Link this guest to an email/password account so your rating and history travel across devices.</p>
+          <form id="form-upgrade" class="magic-form">
+            <label>
+              Display Name
+              <input id="upgrade-display-name" name="displayName" type="text" minlength="3" maxlength="24" required>
+            </label>
+            <label>
+              Email
+              <input id="upgrade-email" name="email" type="email" autocomplete="email" required>
+            </label>
+            <label>
+              Password
+              <input id="upgrade-password" name="password" type="password" minlength="6" autocomplete="new-password" required>
+            </label>
+            <button type="submit" id="btn-upgrade-account" class="btn-magic">Upgrade Account</button>
+          </form>
+        </section>
+
+        <section class="panel-card">
+          <h3>Sign Into Existing Account</h3>
+          <p class="panel-copy">Use this if you already upgraded on another device and want to restore your progress here.</p>
+          <form id="form-login" class="magic-form">
+            <label>
+              Email
+              <input id="login-email" name="email" type="email" autocomplete="email" required>
+            </label>
+            <label>
+              Password
+              <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+            </label>
+            <button type="submit" id="btn-login-account" class="btn-magic btn-secondary">Sign In</button>
+          </form>
+        </section>
+      </div>
+
+      <p id="online-error" class="inline-error" hidden></p>
+
+      <div class="online-actions online-actions-centered">
+        <button id="btn-online-leaderboard" class="btn-magic btn-secondary">View Leaderboard</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ LEADERBOARD SCREEN ═══════════ -->
+  <section id="screen-leaderboard" class="screen">
+    <div class="leaderboard-shell">
+      <div class="panel-topline">
+        <div>
+          <h2 class="setup-heading">Global Leaderboard</h2>
+          <p class="panel-copy" id="leaderboard-summary">The top witches and wizards across every ranked duel.</p>
+        </div>
+        <button id="btn-leaderboard-back" class="btn-magic btn-secondary">Back</button>
+      </div>
+
+      <div class="leaderboard-table-wrap">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Player</th>
+              <th>Rating</th>
+              <th>Record</th>
+              <th>Best Streak</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+        <p id="leaderboard-empty" class="panel-copy" hidden>No ranked witches or wizards have graduated from guest status yet.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ═══════════ GAME SCREEN ═══════════ -->
   <section id="screen-game" class="screen">
     <header class="game-header">
       <div class="player-info harry-info">
         <span class="player-icon">&#9889;</span>
         <div class="player-details">
-          <span class="player-name">Harry</span>
+          <span class="player-name" id="harry-name">Harry</span>
           <span class="player-score"><span id="harry-boards">0</span> boards</span>
           <span class="player-goal" id="harry-goal">3 in a row</span>
         </div>
@@ -131,12 +257,20 @@
       <div class="player-info voldemort-info">
         <span class="player-icon">&#9760;</span>
         <div class="player-details">
-          <span class="player-name">Voldemort</span>
+          <span class="player-name" id="voldemort-name">Voldemort</span>
           <span class="player-score"><span id="voldemort-boards">0</span> boards</span>
           <span class="player-goal" id="voldemort-goal">5 of 9</span>
         </div>
       </div>
     </header>
+
+    <div class="match-status-bar" id="match-status-bar" hidden>
+      <span id="match-status-text">Waiting for the duel to begin.</span>
+      <div class="match-status-actions">
+        <button id="btn-claim-forfeit" class="btn-magic btn-secondary btn-small" hidden>Claim Forfeit</button>
+        <button id="btn-online-resign" class="btn-magic btn-secondary btn-small" hidden>Concede</button>
+      </div>
+    </div>
 
     <!-- The Ultimate Board -->
     <div class="board-wrapper">

@@ -1,0 +1,34 @@
+{
+  "rules": {
+    "presence": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "profiles": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "queue": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "matches": {
+      "$matchId": {
+        ".read": "auth != null && data.child('players').child(auth.uid).exists()",
+        ".write": false
+      }
+    },
+    "leaderboard": {
+      ".read": true,
+      ".write": false
+    },
+    "usernames": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
