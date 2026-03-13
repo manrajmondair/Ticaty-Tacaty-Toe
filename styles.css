@@ -1443,8 +1443,10 @@ body.screen-transitioning::before {
   font-size: 1rem;
   color: var(--text-secondary);
   font-style: italic;
-  margin-bottom: 30px;
-  max-width: 400px;
+  line-height: 1.45;
+  margin: 0 auto 30px;
+  max-width: min(100%, 560px);
+  text-wrap: balance;
 }
 
 .result-actions {
