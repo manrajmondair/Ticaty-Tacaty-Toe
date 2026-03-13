@@ -768,6 +768,7 @@ body.screen-transitioning::before {
   width: min(92vw, 760px);
   max-width: 100%;
   display: flex;
+  gap: 10px;
   justify-content: flex-end;
 }
 
@@ -779,6 +780,32 @@ body.screen-transitioning::before {
   width: min(92vw, 760px);
   max-width: 100%;
   gap: 12px;
+}
+
+#screen-game.is-online .game-topbar,
+#screen-game.is-online .game-header,
+#screen-game.is-online .match-status-bar,
+#screen-game.is-online .game-main {
+  width: min(96vw, 1120px);
+  max-width: 100%;
+}
+
+.game-main {
+  width: min(92vw, 760px);
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.game-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .player-info {
@@ -1248,6 +1275,10 @@ body.screen-transitioning::before {
   z-index: 1;
 }
 
+.game-primary .game-tools {
+  width: 100%;
+}
+
 .game-tools {
   padding: 12px 14px;
 }
@@ -1381,9 +1412,225 @@ body.screen-transitioning::before {
   display: none;
 }
 
+#screen-game.is-online .game-log {
+  max-height: 112px;
+  overflow-y: auto;
+}
+
+#screen-game.is-online .game-log .log-entry:not(:first-child) {
+  display: block;
+}
+
 @keyframes logSlide {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Duel Chat ───────────────────────────────────────── */
+.duel-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-height: 0;
+  padding: 14px;
+  z-index: 4;
+}
+
+.duel-chat[hidden] {
+  display: none !important;
+}
+
+.duel-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.duel-chat-header h3 {
+  margin-bottom: 4px;
+}
+
+.quick-reactions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quick-reaction-btn {
+  border: 1px solid rgba(212, 160, 23, 0.45);
+  background: rgba(212, 160, 23, 0.08);
+  color: var(--harry-gold);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.quick-reaction-btn:hover:not(:disabled) {
+  background: rgba(212, 160, 23, 0.16);
+  border-color: var(--harry-glow);
+  transform: translateY(-1px);
+}
+
+.quick-reaction-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.duel-chat-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.chat-empty-state {
+  border: 1px dashed rgba(232, 213, 183, 0.16);
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.chat-message-meta {
+  font-size: 0.66rem;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.chat-message-bubble {
+  border: 1px solid rgba(232, 213, 183, 0.09);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 9px 11px;
+  color: var(--text-primary);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.chat-message.is-self .chat-message-bubble {
+  background: rgba(212, 160, 23, 0.11);
+  border-color: rgba(212, 160, 23, 0.26);
+}
+
+.chat-message.is-reaction .chat-message-bubble {
+  background: rgba(57, 255, 20, 0.08);
+  border-color: rgba(57, 255, 20, 0.18);
+  color: #d6ffd1;
+}
+
+.duel-chat-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.duel-chat-form input {
+  min-width: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 213, 183, 0.12);
+  background: rgba(10, 10, 21, 0.6);
+  color: var(--text-primary);
+  padding: 11px 13px;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+}
+
+.duel-chat-form input:focus {
+  outline: none;
+  border-color: var(--harry-gold);
+  box-shadow: 0 0 0 2px rgba(212, 160, 23, 0.12);
+}
+
+.duel-chat-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 4, 12, 0.72);
+  z-index: 3;
+}
+
+.duel-chat-backdrop[hidden] {
+  display: none;
+}
+
+.reaction-burst {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 118px;
+  z-index: 30;
+}
+
+.reaction-burst[hidden] {
+  display: none;
+}
+
+.reaction-burst-card {
+  min-width: min(82vw, 420px);
+  max-width: min(82vw, 420px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(212, 160, 23, 0.22);
+  border-radius: 18px;
+  padding: 16px 22px;
+  background: linear-gradient(180deg, rgba(24, 23, 43, 0.96), rgba(12, 12, 24, 0.94));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.42);
+  animation: reactionBurstIn 1.9s ease forwards;
+}
+
+.reaction-burst-label {
+  font-family: var(--font-heading);
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  color: var(--harry-gold);
+  text-align: center;
+}
+
+.reaction-burst-author {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@keyframes reactionBurstIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.92);
+  }
+  14% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
 }
 
 /* ── Game Over Screen ─────────────────────────────────── */
@@ -1745,6 +1992,30 @@ body.screen-transitioning::before {
   gap: 8px;
 }
 
+@media (min-width: 981px) {
+  #screen-game.is-online {
+    --board-size: min(48vh, 58vw, 470px);
+  }
+
+  #screen-game.is-online .game-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  #screen-game.is-online .duel-chat {
+    display: flex !important;
+    height: 100%;
+  }
+
+  #screen-game.is-online #btn-game-chat,
+  #screen-game.is-online #btn-chat-close,
+  #screen-game.is-online .duel-chat-backdrop {
+    display: none !important;
+  }
+}
+
 /* ── Responsive ───────────────────────────────────────── */
 @media (max-width: 980px) {
   #screen-title {
@@ -1753,6 +2024,34 @@ body.screen-transitioning::before {
 
   .title-layout {
     grid-template-columns: 1fr;
+  }
+
+  #screen-game.is-online #btn-game-chat {
+    display: inline-flex !important;
+  }
+
+  #screen-game.is-online .duel-chat {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    top: max(82px, calc(env(safe-area-inset-top) + 68px));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: auto;
+    max-height: none;
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+  }
+
+  #screen-game.is-online.chat-open .duel-chat {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  #screen-game.is-online.chat-open .duel-chat-backdrop {
+    display: block !important;
   }
 }
 
@@ -1962,6 +2261,10 @@ body.screen-transitioning::before {
       'harry voldemort';
   }
 
+  .game-topbar {
+    width: 100%;
+  }
+
   .player-info {
     padding: 6px 10px;
   }
@@ -1983,6 +2286,18 @@ body.screen-transitioning::before {
 
   .spell-bar {
     flex-wrap: wrap;
+  }
+
+  .duel-chat {
+    padding: 14px;
+  }
+
+  .duel-chat-form {
+    grid-template-columns: 1fr;
+  }
+
+  .duel-chat-form .btn-magic {
+    width: 100%;
   }
 
   .panel-topline,
@@ -2285,6 +2600,14 @@ body.screen-transitioning::before {
     width: 100%;
   }
 
+  #screen-game.is-online .duel-chat {
+    left: 8px;
+    right: 8px;
+    top: max(76px, calc(env(safe-area-inset-top) + 60px));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    padding: 12px;
+  }
+
   .turn-indicator {
     font-size: 0.76rem;
     padding: 6px 10px;
@@ -2410,6 +2733,38 @@ body.screen-transitioning::before {
   .log-entry {
     font-size: 0.72rem;
     padding: 7px 9px;
+  }
+
+  .duel-chat-header {
+    gap: 8px;
+  }
+
+  .duel-chat-header h3 {
+    font-size: 0.96rem;
+  }
+
+  .quick-reaction-btn {
+    font-size: 0.66rem;
+    padding: 8px 8px;
+  }
+
+  .chat-message-bubble {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+
+  .reaction-burst {
+    padding-top: 92px;
+  }
+
+  .reaction-burst-card {
+    min-width: min(90vw, 360px);
+    max-width: min(90vw, 360px);
+    padding: 14px 16px;
+  }
+
+  .reaction-burst-author {
+    font-size: 0.82rem;
   }
 
   .inline-error {

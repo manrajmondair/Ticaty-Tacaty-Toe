@@ -240,7 +240,10 @@ export function createOnlineClient(onChange) {
     emit();
 
     try {
-      await authedPost(`/api/matches/${matchId}/action`, action);
+      await authedPost(`/api/matches/${matchId}/action`, {
+        ...action,
+        matchId
+      });
     } catch (error) {
       setError(error.message);
       throw error;
@@ -250,7 +253,38 @@ export function createOnlineClient(onChange) {
   async function resign(matchId, forfeitingUid = null) {
     try {
       await authedPost(`/api/matches/${matchId}/resign`, {
+        matchId,
         forfeitingUid
+      });
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    }
+  }
+
+  async function sendChatMessage(matchId, message) {
+    state.error = '';
+    emit();
+
+    try {
+      await authedPost(`/api/matches/${matchId}/chat`, {
+        matchId,
+        message
+      });
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    }
+  }
+
+  async function sendQuickReaction(matchId, reactionKey) {
+    state.error = '';
+    emit();
+
+    try {
+      await authedPost(`/api/matches/${matchId}/chat`, {
+        matchId,
+        reactionKey
       });
     } catch (error) {
       setError(error.message);
@@ -354,6 +388,8 @@ export function createOnlineClient(onChange) {
         direction
       });
     },
+    sendChatMessage,
+    sendQuickReaction,
     resign,
     updateProfile,
     upgradeGuest,

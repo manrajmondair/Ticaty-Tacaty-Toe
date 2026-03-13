@@ -117,7 +117,15 @@ export function subscribeToQueue(uid, callback) {
 
 export function subscribeToMatch(matchId, callback) {
   return onValue(ref(getFirebaseDb(), `matches/${matchId}`), snapshot => {
-    callback(snapshot.val());
+    if (!snapshot.exists()) {
+      callback(null);
+      return;
+    }
+
+    callback({
+      id: matchId,
+      ...snapshot.val()
+    });
   });
 }
 

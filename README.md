@@ -18,6 +18,7 @@ Horcrux Hunter is a Harry Potter-flavored twist on Ultimate Tic-Tac-Toe. Harry w
 - `Local Duel`: two players, one screen.
 - `Face the Dark Lord`: play either role against the AI.
 - `Online Duel`: ranked matchmaking with guest accounts, reconnects, account upgrades, and a global leaderboard.
+- `Online Duel`: ranked matchmaking with guest accounts, reconnects, account upgrades, live duel chat, quick reactions, and a global leaderboard.
 
 ## Technical Highlights
 

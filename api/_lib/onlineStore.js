@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { DRAW, HARRY, VOLDEMORT } from '../../js/constants.js';
+import { QUICK_REACTION_MAP } from '../../js/quickReactions.js';
 import {
   ACTION_MOVE,
   ACTION_RESIGN,
@@ -17,6 +18,7 @@ import { getAdminDb } from './firebaseAdmin.js';
 export const STARTING_DUELING_RATING = 1000;
 export const DUELING_K_FACTOR = 32;
 export const DISCONNECT_GRACE_MS = 60_000;
+export const MATCH_CHAT_MAX_LENGTH = 240;
 
 function now() {
   return Date.now();
@@ -139,6 +141,10 @@ export function createMatchRecord(playerOne, playerTwo) {
     assignedRoles,
     stateSnapshot: initialState,
     moveHistory: [],
+    chat: {
+      messages: {},
+      latestReaction: null
+    },
     status: 'active',
     winner: null,
     winnerUid: null,
@@ -376,11 +382,27 @@ export async function getMatch(matchId) {
 }
 
 export function validateMatchParticipant(match, uid) {
-  if (!match || !match.players || !match.players[uid]) {
+  if (!match) {
+    const error = new Error('Match not found.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (!match.players || !match.players[uid]) {
     const error = new Error('You are not part of this match.');
     error.statusCode = 403;
     throw error;
   }
+}
+
+function requireActiveMatch(match) {
+  if (match.status === 'active') {
+    return;
+  }
+
+  const error = new Error('This match has already ended.');
+  error.statusCode = 400;
+  throw error;
 }
 
 function determineWinnerUid(match, winnerRole) {
@@ -540,6 +562,84 @@ export async function resignMatch(matchId, requesterUid, options = {}) {
   }
 
   return finalizeMatch(matchId);
+}
+
+function createChatMessage(match, uid, text) {
+  return {
+    id: randomUUID(),
+    type: 'message',
+    uid,
+    displayName: match.players[uid].displayName,
+    text,
+    createdAt: now()
+  };
+}
+
+function createReactionMessage(match, uid, reactionKey) {
+  const label = QUICK_REACTION_MAP[reactionKey];
+  if (!label) {
+    const error = new Error('Unknown quick reaction.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return {
+    id: randomUUID(),
+    type: 'reaction',
+    uid,
+    displayName: match.players[uid].displayName,
+    reactionKey,
+    label,
+    createdAt: now()
+  };
+}
+
+function normalizeChatMessageText(input) {
+  const text = typeof input === 'string' ? input.trim() : '';
+  if (!text) {
+    const error = new Error('Message cannot be empty.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (text.length > MATCH_CHAT_MAX_LENGTH) {
+    const error = new Error(`Messages must be ${MATCH_CHAT_MAX_LENGTH} characters or fewer.`);
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return text;
+}
+
+export async function appendMatchChatMessage(matchId, uid, messageInput) {
+  const match = await getMatch(matchId);
+  validateMatchParticipant(match, uid);
+  requireActiveMatch(match);
+
+  const message = createChatMessage(match, uid, normalizeChatMessageText(messageInput));
+
+  await db().ref().update({
+    [`matches/${matchId}/chat/messages/${message.id}`]: message,
+    [`matches/${matchId}/updatedAt`]: now()
+  });
+
+  return getMatch(matchId);
+}
+
+export async function sendMatchReaction(matchId, uid, reactionKey) {
+  const match = await getMatch(matchId);
+  validateMatchParticipant(match, uid);
+  requireActiveMatch(match);
+
+  const reaction = createReactionMessage(match, uid, reactionKey);
+
+  await db().ref().update({
+    [`matches/${matchId}/chat/messages/${reaction.id}`]: reaction,
+    [`matches/${matchId}/chat/latestReaction`]: reaction,
+    [`matches/${matchId}/updatedAt`]: now()
+  });
+
+  return getMatch(matchId);
 }
 
 export async function updateProfile(uid, payload = {}) {

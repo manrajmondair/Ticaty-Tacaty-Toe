@@ -289,6 +289,7 @@
   <!-- ═══════════ GAME SCREEN ═══════════ -->
   <section id="screen-game" class="screen">
     <div class="game-topbar">
+      <button id="btn-game-chat" class="btn-magic btn-secondary btn-small" hidden>Chat</button>
       <button id="btn-game-exit" class="btn-magic btn-secondary btn-small">Main Menu</button>
     </div>
 
@@ -322,41 +323,87 @@
       </div>
     </div>
 
-    <!-- The Ultimate Board -->
-    <div class="board-wrapper">
-      <div class="ultimate-board" id="ultimate-board">
+    <div class="game-main">
+      <div class="game-primary">
+        <!-- The Ultimate Board -->
+        <div class="board-wrapper">
+          <div class="ultimate-board" id="ultimate-board">
+          </div>
+        </div>
+
+        <div class="game-tools panel-card">
+          <div class="spell-bar" id="spell-bar">
+            <div class="spell-group harry-spells" id="harry-spells">
+              <button class="spell-btn harry-spell" id="spell-expelliarmus" data-spell="expelliarmus" title="Remove one of Voldemort's marks from any active board">
+                <span class="spell-icon">&#10024;</span>
+                <span class="spell-name">Expelliarmus</span>
+              </button>
+              <button class="spell-btn harry-spell" id="spell-patronus" data-spell="patronus" title="Shield a board — Voldemort cannot win it for 2 turns">
+                <span class="spell-icon">&#128737;</span>
+                <span class="spell-name">Patronus</span>
+              </button>
+            </div>
+            <div class="spell-group voldemort-spells" id="voldemort-spells">
+              <button class="spell-btn voldemort-spell" id="spell-avada" data-spell="avadaKedavra" title="Claim an empty cell AND an adjacent empty cell">
+                <span class="spell-icon">&#9889;</span>
+                <span class="spell-name">Avada Kedavra</span>
+              </button>
+              <button class="spell-btn voldemort-spell" id="spell-darkmark" data-spell="darkMark" title="Corrupt one of Harry's marks, making it yours">
+                <span class="spell-icon">&#9760;</span>
+                <span class="spell-name">Dark Mark</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="spell-instructions" id="spell-instructions" hidden>
+            <p id="spell-instructions-text"></p>
+            <button id="spell-cancel" class="btn-magic btn-small">Cancel</button>
+          </div>
+          <div class="game-log" id="game-log"></div>
+        </div>
       </div>
+
+      <aside class="duel-chat panel-card" id="duel-chat-panel" hidden>
+        <div class="duel-chat-header">
+          <div>
+            <h3>Duel Chat</h3>
+            <p class="panel-copy" id="duel-chat-status">Send a message or a quick reaction.</p>
+          </div>
+          <button id="btn-chat-close" class="btn-magic btn-secondary btn-small">Close</button>
+        </div>
+
+        <div class="quick-reactions" id="quick-reactions">
+          <button class="quick-reaction-btn" data-reaction="lumos">Lumos!</button>
+          <button class="quick-reaction-btn" data-reaction="not-so-fast">Not so fast!</button>
+          <button class="quick-reaction-btn" data-reaction="bold-move">Bold move.</button>
+          <button class="quick-reaction-btn" data-reaction="well-played">Well played.</button>
+        </div>
+
+        <div class="duel-chat-feed" id="duel-chat-feed">
+          <div class="chat-empty-state">Quick reactions and messages appear here once the duel begins.</div>
+        </div>
+
+        <form class="duel-chat-form" id="duel-chat-form">
+          <input
+            id="duel-chat-input"
+            name="message"
+            type="text"
+            maxlength="240"
+            placeholder="Send a taunt, warning, or compliment..."
+            autocomplete="off"
+          >
+          <button id="btn-chat-send" class="btn-magic btn-small" type="submit">Send</button>
+        </form>
+      </aside>
     </div>
 
-    <div class="game-tools panel-card">
-      <div class="spell-bar" id="spell-bar">
-        <div class="spell-group harry-spells" id="harry-spells">
-          <button class="spell-btn harry-spell" id="spell-expelliarmus" data-spell="expelliarmus" title="Remove one of Voldemort's marks from any active board">
-            <span class="spell-icon">&#10024;</span>
-            <span class="spell-name">Expelliarmus</span>
-          </button>
-          <button class="spell-btn harry-spell" id="spell-patronus" data-spell="patronus" title="Shield a board — Voldemort cannot win it for 2 turns">
-            <span class="spell-icon">&#128737;</span>
-            <span class="spell-name">Patronus</span>
-          </button>
-        </div>
-        <div class="spell-group voldemort-spells" id="voldemort-spells">
-          <button class="spell-btn voldemort-spell" id="spell-avada" data-spell="avadaKedavra" title="Claim an empty cell AND an adjacent empty cell">
-            <span class="spell-icon">&#9889;</span>
-            <span class="spell-name">Avada Kedavra</span>
-          </button>
-          <button class="spell-btn voldemort-spell" id="spell-darkmark" data-spell="darkMark" title="Corrupt one of Harry's marks, making it yours">
-            <span class="spell-icon">&#9760;</span>
-            <span class="spell-name">Dark Mark</span>
-          </button>
-        </div>
-      </div>
+    <div class="duel-chat-backdrop" id="duel-chat-backdrop" hidden></div>
 
-      <div class="spell-instructions" id="spell-instructions" hidden>
-        <p id="spell-instructions-text"></p>
-        <button id="spell-cancel" class="btn-magic btn-small">Cancel</button>
+    <div class="reaction-burst" id="reaction-burst" hidden>
+      <div class="reaction-burst-card">
+        <span class="reaction-burst-label" id="reaction-burst-label"></span>
+        <span class="reaction-burst-author" id="reaction-burst-author"></span>
       </div>
-      <div class="game-log" id="game-log"></div>
     </div>
   </section>
 

@@ -5,6 +5,7 @@ import {
   STARTING_DUELING_RATING,
   buildLeaderboardEntry,
   calculateRatingDelta,
+  createMatchRecord,
   createGuestName,
   slugifyDisplayName
 } from '../api/_lib/onlineStore.js';
@@ -52,5 +53,18 @@ test('leaderboard entries expose only the public profile fields', () => {
     bestStreak: 4,
     lastMatchDelta: 12,
     updatedAt: 1234
+  });
+});
+
+test('match records include social state for chat and reactions', () => {
+  const match = createMatchRecord(
+    { uid: 'harry-user', displayName: 'Harry', isGuest: false },
+    { uid: 'voldy-user', displayName: 'Voldemort', isGuest: true }
+  );
+
+  assert.equal(typeof match.id, 'string');
+  assert.deepEqual(match.chat, {
+    messages: {},
+    latestReaction: null
   });
 });

@@ -44,7 +44,10 @@ let app = {
   lastOnlineMatchId: null,
   previousScreenBeforeLeaderboard: 'screen-title',
   disconnectTimeoutId: null,
-  screenTransitionTimeoutId: null
+  screenTransitionTimeoutId: null,
+  reactionBurstTimeoutId: null,
+  lastShownReactionId: null,
+  chatPanelOpen: false
 };
 
 function el(id) {
@@ -69,6 +72,9 @@ function showScreen(screenId) {
 
   if (currentScreenId === 'screen-game' && screenId !== 'screen-game') {
     cancelSpell(true);
+    setChatPanelOpen(false);
+    clearReactionBurstTimer();
+    el('reaction-burst').hidden = true;
   }
 
   document.querySelectorAll('.screen').forEach(screen => {
@@ -118,6 +124,10 @@ function getOpponentUid(match = app.onlineState.match) {
   return Object.keys(match?.players || {}).find(playerUid => playerUid !== uid) || null;
 }
 
+function getActiveOnlineMatchId(match = app.onlineState.match) {
+  return match?.id || app.onlineState.profile?.currentMatchId || app.lastOnlineMatchId || null;
+}
+
 function formatSignedNumber(value) {
   if (value === null || value === undefined || Number.isNaN(value)) return '0';
   return value > 0 ? `+${value}` : `${value}`;
@@ -128,6 +138,30 @@ function clearDisconnectTimer() {
     clearTimeout(app.disconnectTimeoutId);
     app.disconnectTimeoutId = null;
   }
+}
+
+function clearReactionBurstTimer() {
+  if (app.reactionBurstTimeoutId) {
+    clearTimeout(app.reactionBurstTimeoutId);
+    app.reactionBurstTimeoutId = null;
+  }
+}
+
+function setChatPanelOpen(isOpen) {
+  app.chatPanelOpen = Boolean(isOpen) && app.mode === 'online';
+  el('screen-game').classList.toggle('chat-open', app.chatPanelOpen);
+  el('duel-chat-backdrop').hidden = !app.chatPanelOpen;
+}
+
+function resetOnlineSocialState() {
+  clearReactionBurstTimer();
+  app.lastShownReactionId = null;
+  setChatPanelOpen(false);
+
+  const reactionBurst = el('reaction-burst');
+  reactionBurst.hidden = true;
+  el('duel-chat-feed').innerHTML = '<div class="chat-empty-state">Quick reactions and messages appear here once the duel begins.</div>';
+  el('duel-chat-input').value = '';
 }
 
 function resetPlayerHeader() {
@@ -160,6 +194,18 @@ function updateGameExitButton() {
   const exitButton = el('btn-game-exit');
   if (!exitButton) return;
   exitButton.textContent = app.mode === 'online' ? 'Back to Lobby' : 'Main Menu';
+}
+
+function updateGameLayout() {
+  const gameScreen = el('screen-game');
+  const isOnline = app.mode === 'online';
+  gameScreen.classList.toggle('is-online', isOnline);
+  el('btn-game-chat').hidden = !isOnline;
+  el('duel-chat-panel').hidden = !isOnline;
+
+  if (!isOnline) {
+    setChatPanelOpen(false);
+  }
 }
 
 function getDisplayRank(uid) {
@@ -489,6 +535,7 @@ function updateUI() {
   const state = app.gameState;
   if (!state) return;
 
+  updateGameLayout();
   updateTurnIndicator();
   updatePlayerHeaderNames();
   el('harry-boards').textContent = state.boardWinners.filter(value => value === HARRY).length;
@@ -499,6 +546,7 @@ function updateUI() {
   updateMatchStatusBar();
   updateTitleActions();
   updateGameExitButton();
+  renderOnlineChat(app.onlineState.match);
 }
 
 function formatActionLogEntry(action, match = null) {
@@ -557,6 +605,110 @@ function renderOnlineLog(match) {
   });
 }
 
+function getSortedChatEntries(match) {
+  return Object.values(match?.chat?.messages || {}).sort((left, right) => {
+    if ((left.createdAt || 0) !== (right.createdAt || 0)) {
+      return (left.createdAt || 0) - (right.createdAt || 0);
+    }
+    return left.id.localeCompare(right.id);
+  });
+}
+
+function renderOnlineChat(match) {
+  const panel = el('duel-chat-panel');
+  const feed = el('duel-chat-feed');
+  const status = el('duel-chat-status');
+  const input = el('duel-chat-input');
+  const sendButton = el('btn-chat-send');
+  const canChat = Boolean(
+    app.mode === 'online' &&
+    match &&
+    match.status === 'active' &&
+    app.onlineState.user &&
+    match.players?.[app.onlineState.user.uid]
+  );
+
+  panel.hidden = app.mode !== 'online';
+  if (app.mode !== 'online') {
+    feed.innerHTML = '<div class="chat-empty-state">Quick reactions and messages appear here once the duel begins.</div>';
+    input.disabled = true;
+    sendButton.disabled = true;
+    document.querySelectorAll('.quick-reaction-btn').forEach(button => {
+      button.disabled = true;
+    });
+    return;
+  }
+
+  status.textContent = canChat
+    ? 'Send a message or throw a quick reaction into the duel.'
+    : match
+      ? 'Chat pauses once the ranked duel is resolved.'
+      : 'Messages unlock once the ranked duel begins.';
+
+  input.disabled = !canChat;
+  sendButton.disabled = !canChat;
+  document.querySelectorAll('.quick-reaction-btn').forEach(button => {
+    button.disabled = !canChat;
+  });
+
+  const entries = getSortedChatEntries(match).slice(-24);
+  feed.innerHTML = '';
+
+  if (!entries.length) {
+    const empty = document.createElement('div');
+    empty.className = 'chat-empty-state';
+    empty.textContent = 'No messages yet. Open with a taunt, a bluff, or a quick reaction.';
+    feed.appendChild(empty);
+  } else {
+    const currentUid = app.onlineState.user?.uid;
+    entries.forEach(entry => {
+      const message = document.createElement('div');
+      message.className = 'chat-message';
+      if (entry.uid === currentUid) {
+        message.classList.add('is-self');
+      }
+      if (entry.type === 'reaction') {
+        message.classList.add('is-reaction');
+      }
+
+      const meta = document.createElement('div');
+      meta.className = 'chat-message-meta';
+      meta.textContent = entry.displayName || 'Unknown Wizard';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-message-bubble';
+      bubble.textContent = entry.type === 'reaction'
+        ? entry.label
+        : entry.text;
+
+      message.append(meta, bubble);
+      feed.appendChild(message);
+    });
+  }
+
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function showReactionBurst(reaction) {
+  if (!reaction) return;
+
+  clearReactionBurstTimer();
+
+  const burst = el('reaction-burst');
+  const card = burst.querySelector('.reaction-burst-card');
+  el('reaction-burst-label').textContent = reaction.label;
+  el('reaction-burst-author').textContent = `${reaction.displayName} reacted`;
+
+  burst.hidden = false;
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = '';
+
+  app.reactionBurstTimeoutId = setTimeout(() => {
+    burst.hidden = true;
+  }, 1900);
+}
+
 function startLocalGame() {
   app.gameState = createInitialState();
   app.prevGameState = null;
@@ -564,6 +716,7 @@ function startLocalGame() {
   app.actionPending = false;
   app.lastOnlineMatchId = null;
   clearDisconnectTimer();
+  resetOnlineSocialState();
 
   prepareFreshBoard();
   cancelSpell(true);
@@ -589,12 +742,15 @@ function startOnlineGame(match) {
     prepareFreshBoard();
     clearLog();
     cancelSpell(true);
+    resetOnlineSocialState();
+    app.lastShownReactionId = match.chat?.latestReaction?.id || null;
   } else {
     ensureBoardRendered();
   }
 
   updateBoard(app.gameState, app.prevGameState);
   renderOnlineLog(match);
+  renderOnlineChat(match);
   app.lastOnlineMatchId = match.id;
   updateUI();
   showScreen('screen-game');
@@ -669,14 +825,14 @@ function handleLocalMove(boardIndex, cellIndex) {
 }
 
 async function handleOnlineMove(boardIndex, cellIndex) {
-  const match = app.onlineState.match;
-  if (!match || !isValidMove(app.gameState, boardIndex, cellIndex)) return;
+  const matchId = getActiveOnlineMatchId();
+  if (!matchId || !isValidMove(app.gameState, boardIndex, cellIndex)) return;
 
   app.actionPending = true;
   updateUI();
 
   try {
-    await app.onlineClient.submitMove(match.id, boardIndex, cellIndex);
+    await app.onlineClient.submitMove(matchId, boardIndex, cellIndex);
   } catch (error) {
     logMessage(error.message);
   } finally {
@@ -794,14 +950,14 @@ function getAvadaDirection(boardIndex, cellIndex) {
 }
 
 async function submitOnlineSpell(spellKey, boardIndex, cellIndex, direction = null) {
-  const match = app.onlineState.match;
-  if (!match) return;
+  const matchId = getActiveOnlineMatchId();
+  if (!matchId) return;
 
   app.actionPending = true;
   updateUI();
 
   try {
-    await app.onlineClient.submitSpell(match.id, spellKey, boardIndex, cellIndex, direction);
+    await app.onlineClient.submitSpell(matchId, spellKey, boardIndex, cellIndex, direction);
     cancelSpell(true);
   } catch (error) {
     logMessage(error.message);
@@ -931,6 +1087,19 @@ function shouldAutoOpenOnlineMatch(previousState, nextState) {
 function handleOnlineStateChange(nextState) {
   const previousState = app.onlineState;
   app.onlineState = nextState;
+  const previousReactionId = previousState.match?.chat?.latestReaction?.id || null;
+  const nextReaction = nextState.match?.chat?.latestReaction || null;
+  const nextReactionId = nextReaction?.id || null;
+
+  if (previousState.match?.id !== nextState.match?.id) {
+    app.lastShownReactionId = nextReactionId;
+    setChatPanelOpen(false);
+  } else if (nextReactionId && nextReactionId !== previousReactionId && nextReactionId !== app.lastShownReactionId) {
+    app.lastShownReactionId = nextReactionId;
+    if (app.mode === 'online' && getCurrentScreenId() === 'screen-game') {
+      showReactionBurst(nextReaction);
+    }
+  }
 
   if (shouldAutoOpenOnlineMatch(previousState, nextState)) {
     startOnlineGame(nextState.match);
@@ -953,15 +1122,46 @@ function handleOnlineStateChange(nextState) {
 
   updateOnlinePanels();
   updateMatchStatusBar();
+  renderOnlineChat(nextState.match);
 }
 
 async function claimDisconnectForfeit() {
   const match = app.onlineState.match;
+  const matchId = getActiveOnlineMatchId(match);
   const opponentUid = getOpponentUid(match);
-  if (!match || !opponentUid || match.status !== 'active') return;
+  if (!matchId || !match || !opponentUid || match.status !== 'active') return;
 
   try {
-    await app.onlineClient.resign(match.id, opponentUid);
+    await app.onlineClient.resign(matchId, opponentUid);
+  } catch (error) {
+    logMessage(error.message);
+  }
+}
+
+async function handleChatSubmit(event) {
+  event.preventDefault();
+
+  const matchId = getActiveOnlineMatchId();
+  const input = el('duel-chat-input');
+  const message = input.value.trim();
+  if (!matchId || !message) return;
+
+  input.value = '';
+
+  try {
+    await app.onlineClient.sendChatMessage(matchId, message);
+  } catch (error) {
+    input.value = message;
+    logMessage(error.message);
+  }
+}
+
+async function handleQuickReaction(reactionKey) {
+  const matchId = getActiveOnlineMatchId();
+  if (!matchId) return;
+
+  try {
+    await app.onlineClient.sendQuickReaction(matchId, reactionKey);
   } catch (error) {
     logMessage(error.message);
   }
@@ -1041,6 +1241,7 @@ async function leaveOnlineContextToTitle() {
 
   app.mode = null;
   clearDisconnectTimer();
+  resetOnlineSocialState();
   showScreen('screen-title');
 }
 
@@ -1058,6 +1259,7 @@ function handleGameExitClick() {
   cancelSpell(true);
 
   if (app.mode === 'online') {
+    setChatPanelOpen(false);
     showScreen('screen-online');
     updateOnlinePanels();
     return;
@@ -1114,6 +1316,15 @@ function wireEventListeners() {
   });
 
   el('spell-cancel').addEventListener('click', () => cancelSpell());
+  el('btn-game-chat').addEventListener('click', () => {
+    setChatPanelOpen(true);
+  });
+  el('btn-chat-close').addEventListener('click', () => {
+    setChatPanelOpen(false);
+  });
+  el('duel-chat-backdrop').addEventListener('click', () => {
+    setChatPanelOpen(false);
+  });
   el('btn-game-exit').addEventListener('click', handleGameExitClick);
   document.addEventListener('keydown', event => {
     if (event.key !== 'Escape') return;
@@ -1125,6 +1336,11 @@ function wireEventListeners() {
 
     if (app.gameState?.castingSpell) {
       cancelSpell();
+      return;
+    }
+
+    if (app.chatPanelOpen) {
+      setChatPanelOpen(false);
     }
   });
 
@@ -1157,12 +1373,20 @@ function wireEventListeners() {
     app.onlineClient.signOutToGuest().catch(() => {});
   });
   el('btn-online-resign').addEventListener('click', () => {
-    if (app.onlineState.match) {
-      app.onlineClient.resign(app.onlineState.match.id).catch(() => {});
+    const matchId = getActiveOnlineMatchId();
+    if (matchId) {
+      app.onlineClient.resign(matchId).catch(() => {});
     }
   });
   el('btn-claim-forfeit').addEventListener('click', () => {
     claimDisconnectForfeit().catch(() => {});
+  });
+
+  el('duel-chat-form').addEventListener('submit', handleChatSubmit);
+  document.querySelectorAll('.quick-reaction-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      handleQuickReaction(button.dataset.reaction).catch(() => {});
+    });
   });
 
   el('form-upgrade').addEventListener('submit', handleUpgradeSubmit);
