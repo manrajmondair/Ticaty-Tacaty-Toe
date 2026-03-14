@@ -415,12 +415,14 @@ export async function submitMatchAction(matchId, uid, actionInput) {
   const action = normalizeAction(actionInput);
   let rejectionMessage = 'Could not apply that action.';
   let committedMatch = null;
+  let sawExistingMatch = false;
 
   const transaction = await matchRef.transaction(current => {
     if (!current) {
-      rejectionMessage = 'Match not found.';
-      return;
+      return current;
     }
+
+    sawExistingMatch = true;
 
     if (!current.players || !current.players[uid]) {
       rejectionMessage = 'You are not part of this match.';
@@ -477,9 +479,15 @@ export async function submitMatchAction(matchId, uid, actionInput) {
     return nextMatch;
   });
 
+  if (!sawExistingMatch) {
+    const error = new Error('Match not found.');
+    error.statusCode = 404;
+    throw error;
+  }
+
   if (!transaction.committed || !committedMatch) {
     const error = new Error(rejectionMessage);
-    error.statusCode = rejectionMessage === 'Match not found.' ? 404 : 400;
+    error.statusCode = 400;
     throw error;
   }
 
@@ -495,6 +503,7 @@ export async function resignMatch(matchId, requesterUid, options = {}) {
   const forfeitingUid = options.forfeitingUid || requesterUid;
   let rejectionMessage = 'Could not concede this match.';
   let committedMatch = null;
+  let sawExistingMatch = false;
 
   if (forfeitingUid !== requesterUid) {
     const presenceSnapshot = await db().ref(`presence/${forfeitingUid}`).get();
@@ -511,9 +520,10 @@ export async function resignMatch(matchId, requesterUid, options = {}) {
 
   const transaction = await matchRef.transaction(current => {
     if (!current) {
-      rejectionMessage = 'Match not found.';
-      return;
+      return current;
     }
+
+    sawExistingMatch = true;
 
     if (!current.players || !current.players[requesterUid]) {
       rejectionMessage = 'You are not part of this match.';
@@ -555,9 +565,15 @@ export async function resignMatch(matchId, requesterUid, options = {}) {
     return committedMatch;
   });
 
+  if (!sawExistingMatch) {
+    const error = new Error('Match not found.');
+    error.statusCode = 404;
+    throw error;
+  }
+
   if (!transaction.committed || !committedMatch) {
     const error = new Error(rejectionMessage);
-    error.statusCode = rejectionMessage === 'Match not found.' ? 404 : 400;
+    error.statusCode = 400;
     throw error;
   }
 

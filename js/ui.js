@@ -272,6 +272,7 @@ function updateOnlinePanels() {
   const queueButton = el('btn-online-queue');
   const leaveButton = el('btn-online-leave');
   const resumeButton = el('btn-online-resume');
+  const newMatchButton = el('btn-online-new-match');
   const signOutButton = el('btn-online-signout');
   const upgradeCard = el('online-upgrade-card');
 
@@ -293,6 +294,7 @@ function updateOnlinePanels() {
     queueButton.disabled = true;
     leaveButton.disabled = true;
     resumeButton.hidden = true;
+    newMatchButton.hidden = true;
     signOutButton.hidden = true;
     upgradeCard.hidden = true;
     renderLeaderboard();
@@ -333,6 +335,7 @@ function updateOnlinePanels() {
   queueButton.hidden = state.queueStatus === 'searching' || hasActiveMatch;
   leaveButton.hidden = state.queueStatus !== 'searching';
   resumeButton.hidden = !hasActiveMatch;
+  newMatchButton.hidden = !hasActiveMatch;
   signOutButton.hidden = !state.profile || state.profile.isGuest;
   upgradeCard.hidden = !state.profile?.isGuest;
 
@@ -1183,6 +1186,19 @@ async function handleQueueLeave() {
   }
 }
 
+async function handleQueueReplace() {
+  const matchId = getActiveOnlineMatchId();
+  if (!matchId) return;
+
+  try {
+    await app.onlineClient.resign(matchId);
+    await app.onlineClient.acknowledgeMatchComplete();
+    await app.onlineClient.joinRankedQueue();
+  } catch {
+    // Error is surfaced in the online panel.
+  }
+}
+
 async function handleUpgradeSubmit(event) {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
@@ -1359,6 +1375,9 @@ function wireEventListeners() {
   });
   el('btn-online-leave').addEventListener('click', () => {
     handleQueueLeave().catch(() => {});
+  });
+  el('btn-online-new-match').addEventListener('click', () => {
+    handleQueueReplace().catch(() => {});
   });
   el('btn-online-resume').addEventListener('click', () => {
     if (app.onlineState.match) {
