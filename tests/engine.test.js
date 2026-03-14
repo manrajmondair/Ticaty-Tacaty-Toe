@@ -62,3 +62,23 @@ test('hydrateState resets local spell-targeting flags', () => {
   assert.equal(state.spellTargetStep, 0);
   assert.equal(state._avadaTarget, null);
 });
+
+test('hydrateState rebuilds full boards from Firebase-trimmed arrays', () => {
+  const state = hydrateState({
+    boards: [['harry']],
+    boardWinners: ['harry'],
+    currentPlayer: VOLDEMORT,
+    activeBoard: 0
+  });
+
+  assert.equal(state.boards.length, 9);
+  assert.equal(state.boards[0].length, 9);
+  assert.equal(state.boards[0][0], HARRY);
+  assert.equal(state.boards[0][1], null);
+  assert.equal(state.boards[4][4], null);
+  assert.equal(state.boardWinners.length, 9);
+  assert.equal(state.boardWinners[0], HARRY);
+  assert.equal(state.boardWinners[1], null);
+  assert.equal(state.currentPlayer, VOLDEMORT);
+  assert.equal(state.activeBoard, 0);
+});

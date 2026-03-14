@@ -397,7 +397,11 @@ function updateMatchStatusBar() {
   }
 
   clearDisconnectTimer();
-  text.textContent = `Ranked duel live. You are ${myRole === HARRY ? 'Harry' : 'Voldemort'}.`;
+  const targetBoard = app.gameState?.activeBoard;
+  const targetText = targetBoard === null
+    ? 'You can play on any open board.'
+    : `Play on board ${targetBoard + 1}.`;
+  text.textContent = `Ranked duel live. You are ${myRole === HARRY ? 'Harry' : 'Voldemort'}. ${targetText}`;
 }
 
 function setSpellInstructions(spellKey, overrideText = null) {
@@ -461,6 +465,21 @@ function canHumanAct() {
   }
 
   return !app.aiThinking;
+}
+
+function getInvalidMoveMessage(state, boardIndex, cellIndex) {
+  if (!state) return 'The duel is not ready yet.';
+  if (state.gameOver) return 'This duel has already ended.';
+  if (state.boardWinners[boardIndex] !== EMPTY) return 'That board has already been claimed.';
+  if (state.boards[boardIndex]?.[cellIndex] !== EMPTY) return 'That cell is already occupied.';
+  if (
+    state.activeBoard !== null &&
+    state.boardWinners[state.activeBoard] === EMPTY &&
+    state.activeBoard !== boardIndex
+  ) {
+    return `You must play on board ${state.activeBoard + 1}.`;
+  }
+  return 'That move is not legal right now.';
 }
 
 function updateSpellButtons(state) {
@@ -609,12 +628,14 @@ function renderOnlineLog(match) {
 }
 
 function getSortedChatEntries(match) {
-  return Object.values(match?.chat?.messages || {}).sort((left, right) => {
-    if ((left.createdAt || 0) !== (right.createdAt || 0)) {
-      return (left.createdAt || 0) - (right.createdAt || 0);
-    }
-    return left.id.localeCompare(right.id);
-  });
+  return Object.values(match?.chat?.messages || {})
+    .filter(entry => entry && typeof entry === 'object')
+    .sort((left, right) => {
+      if ((left.createdAt || 0) !== (right.createdAt || 0)) {
+        return (left.createdAt || 0) - (right.createdAt || 0);
+      }
+      return (left.id || '').localeCompare(right.id || '');
+    });
 }
 
 function renderOnlineChat(match) {
@@ -699,8 +720,8 @@ function showReactionBurst(reaction) {
 
   const burst = el('reaction-burst');
   const card = burst.querySelector('.reaction-burst-card');
-  el('reaction-burst-label').textContent = reaction.label;
-  el('reaction-burst-author').textContent = `${reaction.displayName} reacted`;
+  el('reaction-burst-label').textContent = reaction.label || 'A quick reaction';
+  el('reaction-burst-author').textContent = `${reaction.displayName || 'A rival'} reacted`;
 
   burst.hidden = false;
   card.style.animation = 'none';
@@ -751,12 +772,12 @@ function startOnlineGame(match) {
     ensureBoardRendered();
   }
 
+  app.lastOnlineMatchId = match.id;
+  showScreen('screen-game');
   updateBoard(app.gameState, app.prevGameState);
   renderOnlineLog(match);
   renderOnlineChat(match);
-  app.lastOnlineMatchId = match.id;
   updateUI();
-  showScreen('screen-game');
 
   if (match.status === 'completed' && match.ratingDelta) {
     endGame();
@@ -829,7 +850,11 @@ function handleLocalMove(boardIndex, cellIndex) {
 
 async function handleOnlineMove(boardIndex, cellIndex) {
   const matchId = getActiveOnlineMatchId();
-  if (!matchId || !isValidMove(app.gameState, boardIndex, cellIndex)) return;
+  if (!matchId) return;
+  if (!isValidMove(app.gameState, boardIndex, cellIndex)) {
+    logMessage(getInvalidMoveMessage(app.gameState, boardIndex, cellIndex));
+    return;
+  }
 
   app.actionPending = true;
   updateUI();
@@ -1083,8 +1108,10 @@ function shouldAutoOpenOnlineMatch(previousState, nextState) {
   if (app.mode !== 'online') return false;
   if (!nextState.match || nextState.match.status !== 'active') return false;
   if (getCurrentScreenId() === 'screen-game') return true;
+  if (getCurrentScreenId() !== 'screen-online') return false;
 
-  return previousState?.queueStatus === 'searching' && nextState.queueStatus === 'matched';
+  return previousState?.queueStatus === 'searching' ||
+    previousState?.match?.id !== nextState.match.id;
 }
 
 function handleOnlineStateChange(nextState) {

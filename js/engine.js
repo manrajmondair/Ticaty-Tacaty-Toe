@@ -1,4 +1,4 @@
-import { HARRY, VOLDEMORT } from './constants.js';
+import { EMPTY, HARRY, TOTAL_BOARDS, TOTAL_CELLS, VOLDEMORT } from './constants.js';
 import {
   createInitialState,
   cloneState,
@@ -27,16 +27,42 @@ function cloneBoards(boards) {
   return boards.map(board => [...board]);
 }
 
+function getIndexedValue(collection, index) {
+  if (!collection || typeof collection !== 'object') return undefined;
+  return collection[index] ?? collection[String(index)];
+}
+
+function normalizeBoardRow(row) {
+  return Array.from({ length: TOTAL_CELLS }, (_, cellIndex) => {
+    const value = getIndexedValue(row, cellIndex);
+    return value ?? EMPTY;
+  });
+}
+
+function normalizeBoards(boards) {
+  return Array.from({ length: TOTAL_BOARDS }, (_, boardIndex) => {
+    const row = getIndexedValue(boards, boardIndex);
+    return normalizeBoardRow(row);
+  });
+}
+
+function normalizeBoardWinners(boardWinners) {
+  return Array.from({ length: TOTAL_BOARDS }, (_, boardIndex) => {
+    const value = getIndexedValue(boardWinners, boardIndex);
+    return value ?? EMPTY;
+  });
+}
+
 export function hydrateState(snapshot) {
   const base = createInitialState();
   if (!snapshot) return base;
 
   return {
     ...base,
-    boards: Array.isArray(snapshot.boards) ? cloneBoards(snapshot.boards) : base.boards,
-    boardWinners: Array.isArray(snapshot.boardWinners)
-      ? [...snapshot.boardWinners]
-      : base.boardWinners,
+    boards: snapshot.boards ? normalizeBoards(snapshot.boards) : cloneBoards(base.boards),
+    boardWinners: snapshot.boardWinners
+      ? normalizeBoardWinners(snapshot.boardWinners)
+      : [...base.boardWinners],
     currentPlayer: snapshot.currentPlayer ?? base.currentPlayer,
     activeBoard: snapshot.activeBoard ?? base.activeBoard,
     spellsRemaining: snapshot.spellsRemaining
