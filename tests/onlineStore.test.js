@@ -7,6 +7,8 @@ import {
   calculateRatingDelta,
   createMatchRecord,
   createGuestName,
+  deriveProfileAccessState,
+  isLeaderboardEligible,
   slugifyDisplayName
 } from '../api/_lib/onlineStore.js';
 
@@ -67,4 +69,35 @@ test('match records include social state for chat and reactions', () => {
     messages: {},
     latestReaction: null
   });
+});
+
+test('anonymous auth users stay off the public leaderboard', () => {
+  const accessState = deriveProfileAccessState({
+    firebase: {
+      sign_in_provider: 'anonymous'
+    }
+  });
+
+  assert.deepEqual(accessState, {
+    authProvider: 'anonymous',
+    isGuest: true,
+    leaderboardEligible: false
+  });
+  assert.equal(isLeaderboardEligible(accessState), false);
+});
+
+test('password auth users are eligible for the public leaderboard', () => {
+  const accessState = deriveProfileAccessState({
+    firebase: {
+      sign_in_provider: 'password'
+    },
+    email: 'wizard@example.com'
+  });
+
+  assert.deepEqual(accessState, {
+    authProvider: 'password',
+    isGuest: false,
+    leaderboardEligible: true
+  });
+  assert.equal(isLeaderboardEligible(accessState), true);
 });

@@ -13,7 +13,7 @@ import {
   serializeState
 } from '../../js/engine.js';
 import { createInitialState } from '../../js/gameState.js';
-import { getAdminDb } from './firebaseAdmin.js';
+import { getAdminAuth, getAdminDb } from './firebaseAdmin.js';
 
 export const STARTING_DUELING_RATING = 1000;
 export const DUELING_K_FACTOR = 32;
@@ -51,6 +51,8 @@ function createBaseProfile(uid, overrides = {}) {
     displayName: guestName,
     displayNameSlug: slugifyDisplayName(guestName),
     isGuest: true,
+    leaderboardEligible: false,
+    authProvider: 'anonymous',
     duelingRating: STARTING_DUELING_RATING,
     wins: 0,
     losses: 0,
@@ -80,6 +82,27 @@ export function buildLeaderboardEntry(profile) {
     lastMatchDelta: profile.lastMatchDelta,
     updatedAt: profile.updatedAt
   };
+}
+
+export function deriveProfileAccessState(authUser = null) {
+  const tokenProvider = authUser?.firebase?.sign_in_provider || authUser?.sign_in_provider || null;
+  const providerIds = Array.isArray(authUser?.providerData)
+    ? authUser.providerData.map(entry => entry?.providerId).filter(Boolean)
+    : [];
+  const resolvedProvider = tokenProvider ||
+    providerIds.find(providerId => providerId !== 'anonymous') ||
+    (authUser?.email ? 'password' : 'anonymous');
+  const hasPermanentAccount = Boolean(resolvedProvider && resolvedProvider !== 'anonymous');
+
+  return {
+    authProvider: resolvedProvider || 'anonymous',
+    isGuest: !hasPermanentAccount,
+    leaderboardEligible: hasPermanentAccount
+  };
+}
+
+export function isLeaderboardEligible(profile = {}) {
+  return profile.isGuest === false && profile.leaderboardEligible === true;
 }
 
 export async function getProfile(uid) {
@@ -228,7 +251,7 @@ function createNextProfile(profile, score, delta, matchId) {
 }
 
 function rootUpdateForLeaderboard(updates, profile) {
-  if (profile.isGuest) {
+  if (!isLeaderboardEligible(profile)) {
     updates[`leaderboard/${profile.uid}`] = null;
     return;
   }
@@ -658,11 +681,16 @@ export async function sendMatchReaction(matchId, uid, reactionKey) {
   return getMatch(matchId);
 }
 
-export async function updateProfile(uid, payload = {}) {
+export async function updateProfile(uid, payload = {}, authUser = null) {
   const profile = await ensureProfile(uid);
   const displayName = typeof payload.displayName === 'string' ? payload.displayName.trim() : '';
   const updates = {};
-  let nextProfile = { ...profile, lastSeenAt: now(), updatedAt: now() };
+  let nextProfile = {
+    ...profile,
+    ...deriveProfileAccessState(authUser),
+    lastSeenAt: now(),
+    updatedAt: now()
+  };
 
   if (displayName) {
     if (displayName.length < 3 || displayName.length > 24) {
@@ -701,7 +729,7 @@ export async function updateProfile(uid, payload = {}) {
     };
   }
 
-  if (typeof payload.isGuest === 'boolean') {
+  if (!authUser && typeof payload.isGuest === 'boolean') {
     nextProfile.isGuest = payload.isGuest;
   }
 
@@ -711,6 +739,47 @@ export async function updateProfile(uid, payload = {}) {
   await db().ref().update(updates);
 
   return nextProfile;
+}
+
+export async function repairLeaderboardIntegrity() {
+  const auth = getAdminAuth();
+  const profilesSnapshot = await db().ref('profiles').get();
+  const profiles = profilesSnapshot.val() || {};
+  const updates = {};
+
+  for (const [uid, profile] of Object.entries(profiles)) {
+    const isProbeAccount = uid.startsWith('probe-') || /^Probe\b/.test(profile.displayName || '');
+    if (isProbeAccount) {
+      updates[`profiles/${uid}`] = null;
+      updates[`leaderboard/${uid}`] = null;
+
+      if (profile.displayNameSlug) {
+        updates[`usernames/${profile.displayNameSlug}`] = null;
+      }
+
+      continue;
+    }
+
+    let authState;
+    try {
+      const userRecord = await auth.getUser(uid);
+      authState = deriveProfileAccessState(userRecord);
+    } catch {
+      authState = deriveProfileAccessState(null);
+    }
+
+    const nextProfile = {
+      ...profile,
+      ...authState,
+      updatedAt: now()
+    };
+
+    updates[`profiles/${uid}`] = nextProfile;
+    rootUpdateForLeaderboard(updates, nextProfile);
+  }
+
+  await db().ref().update(updates);
+  return updates;
 }
 
 export function normalizeAction(input = {}) {

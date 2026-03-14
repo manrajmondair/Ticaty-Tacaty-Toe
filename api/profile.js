@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   try {
     const user = await requireUser(req);
     const body = await readJson(req);
-    const profile = await updateProfile(user.uid, body);
+    const profile = await updateProfile(user.uid, body, user);
     sendJson(res, 200, { profile });
   } catch (error) {
     sendJson(res, error.statusCode || 500, { error: error.message });
