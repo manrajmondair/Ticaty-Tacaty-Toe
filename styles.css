@@ -1056,6 +1056,10 @@ body.screen-transitioning::before {
   transition: background 0.2s, transform 0.1s;
   user-select: none;
   position: relative;
+  /* Kill the synthetic 300ms tap delay on mobile browsers and remove the
+     grey tap-flash so taps feel as immediate as clicks. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .cell:hover:not(.taken) {
@@ -2065,7 +2069,10 @@ body.screen-transitioning::before {
   }
 
   #screen-game {
-    --board-size: min(50vh, 94vw, 430px);
+    /* Widen the playable area on phones so each cell tap target is closer
+       to the recommended 44 CSS px minimum on the common 6-inch phone. */
+    --board-size: min(58vh, 96vw, 460px);
+    padding: 12px 8px 14px;
   }
 
   #screen-title {
@@ -2468,8 +2475,10 @@ body.screen-transitioning::before {
   }
 
   #screen-game {
-    --board-size: min(44vh, 96vw, 320px);
-    padding: 8px 8px 10px;
+    /* Maximize the playable area on small phones so each cell stays above
+       the comfortable 36 CSS px floor at 360px viewports. */
+    --board-size: min(50vh, 98vw, 380px);
+    padding: 8px 4px 10px;
     gap: 8px;
   }
 
@@ -2577,8 +2586,8 @@ body.screen-transitioning::before {
   }
 
   .ultimate-board {
-    gap: 4px;
-    padding: 6px;
+    gap: 3px;
+    padding: 4px;
   }
 
   .mini-board {
