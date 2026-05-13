@@ -392,7 +392,9 @@ function updateMatchStatusBar() {
     // absurdly large, treat the disconnect as just-started rather than
     // showing nonsense or auto-forfeiting unfairly.
     const elapsed = rawElapsed < 0 || rawElapsed > 5 * 60_000 ? 0 : rawElapsed;
-    const deadlineAt = (presence.lastSeenAt || Date.now()) + 60_000;
+    // Anchor the deadline off of "now + remaining" so a wrong clock can't
+    // place it 30+ seconds in the future and show stuck >60s countdowns.
+    const deadlineAt = Date.now() + Math.max(0, 60_000 - elapsed);
 
     const renderCountdown = () => {
       const remaining = Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
@@ -1323,32 +1325,52 @@ async function claimDisconnectForfeit() {
   }
 }
 
+let chatSendInFlight = false;
+let reactionSendInFlight = false;
+
 async function handleChatSubmit(event) {
   event.preventDefault();
+  if (chatSendInFlight) return;
 
   const matchId = getActiveOnlineMatchId();
   const input = el('duel-chat-input');
   const message = input.value.trim();
   if (!matchId || !message) return;
 
+  const sendButton = el('btn-chat-send');
   input.value = '';
+  chatSendInFlight = true;
+  sendButton.disabled = true;
 
   try {
     await app.onlineClient.sendChatMessage(matchId, message);
   } catch (error) {
     input.value = message;
     logMessage(error.message);
+  } finally {
+    chatSendInFlight = false;
+    // renderOnlineChat may have rewritten disabled state already; ensure
+    // we don't leave the button disabled if it should be active.
+    renderOnlineChat(app.onlineState.match);
   }
 }
 
 async function handleQuickReaction(reactionKey) {
+  if (reactionSendInFlight) return;
   const matchId = getActiveOnlineMatchId();
   if (!matchId) return;
+
+  const buttons = document.querySelectorAll('.quick-reaction-btn');
+  reactionSendInFlight = true;
+  buttons.forEach(button => { button.disabled = true; });
 
   try {
     await app.onlineClient.sendQuickReaction(matchId, reactionKey);
   } catch (error) {
     logMessage(error.message);
+  } finally {
+    reactionSendInFlight = false;
+    renderOnlineChat(app.onlineState.match);
   }
 }
 
