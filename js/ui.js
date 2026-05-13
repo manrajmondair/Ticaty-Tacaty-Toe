@@ -952,12 +952,29 @@ async function handleOnlineMove(boardIndex, cellIndex) {
     return;
   }
 
+  // Optimistically apply the move locally so the cell flips instantly. The
+  // canonical state still arrives via the Firebase listener; if the server
+  // rejects (rare race), we roll back below.
+  const snapshotBeforeOptimistic = cloneState(app.gameState);
+  app.prevGameState = snapshotBeforeOptimistic;
+  applyMove(app.gameState, boardIndex, cellIndex);
+  const stateAfterOptimistic = app.gameState;
+  updateBoard(app.gameState, app.prevGameState);
+
   app.actionPending = true;
   updateUI();
 
   try {
     await app.onlineClient.submitMove(matchId, boardIndex, cellIndex);
   } catch (error) {
+    // Server rejected. Only roll back if our optimistic state is still in
+    // place — if a Firebase event swapped it for a fresher snapshot while we
+    // were waiting (opponent resign, completion, etc.), trust that instead.
+    if (app.gameState === stateAfterOptimistic) {
+      app.gameState = snapshotBeforeOptimistic;
+      app.prevGameState = null;
+      updateBoard(app.gameState, null);
+    }
     logMessage(error.message);
   } finally {
     app.actionPending = false;
