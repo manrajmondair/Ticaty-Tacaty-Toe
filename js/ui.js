@@ -1221,11 +1221,18 @@ function handleSpellTarget(boardIndex, cellIndex) {
 }
 
 function handleCellClick(event) {
+  // Defense in depth: only act on cell clicks while the game screen is
+  // actually active. The board DOM lingers across screen transitions, so
+  // without this guard a stray click could mutate a stale gameState.
+  if (getCurrentScreenId() !== 'screen-game') return;
+  if (!app.mode) return;
+
   const cellEl = event.target.closest('.cell');
   if (!cellEl || !app.gameState) return;
 
   const boardIndex = Number(cellEl.dataset.board);
   const cellIndex = Number(cellEl.dataset.cell);
+  if (!Number.isInteger(boardIndex) || !Number.isInteger(cellIndex)) return;
 
   if (app.gameState.castingSpell) {
     handleSpellTarget(boardIndex, cellIndex);
