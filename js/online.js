@@ -95,11 +95,26 @@ export function createOnlineClient(onChange) {
     match: null,
     presence: null
   };
+  // Remember which deleted match ids we've already asked the server to clear.
+  // Without this, every onValue(null) tick would fire a fresh authedPost.
+  const staleMatchIdsAttempted = new Set();
 
   function emit() {
     onChange({
       ...state
     });
+  }
+
+  async function clearStaleMatchPointer(matchId) {
+    if (!matchId || staleMatchIdsAttempted.has(matchId)) return;
+    staleMatchIdsAttempted.add(matchId);
+    try {
+      const payload = await authedPost('/api/profile', { clearCurrentMatchId: true });
+      state.profile = payload.profile;
+      emit();
+    } catch {
+      // Best-effort; the next queue attempt will run the same cleanup path.
+    }
   }
 
   function resetScopedSubscription(key) {
@@ -163,6 +178,12 @@ export function createOnlineClient(onChange) {
         state.queueStatus = 'idle';
         state.opponentPresence = null;
         resetScopedSubscription('presence');
+        // Profile still points at a match the server has thrown away. Ask
+        // the server to clear currentMatchId so the user isn't stuck waiting
+        // for the next queue attempt to unstick them.
+        if (state.profile?.currentMatchId === matchId) {
+          clearStaleMatchPointer(matchId);
+        }
         emit();
         return;
       }

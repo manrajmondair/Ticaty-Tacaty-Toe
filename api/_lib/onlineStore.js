@@ -770,6 +770,17 @@ export async function updateProfile(uid, payload = {}, authUser = null) {
     nextProfile.isGuest = payload.isGuest;
   }
 
+  // Best-effort cleanup of a stale currentMatchId pointing at a match that
+  // no longer exists or is no longer active. We only clear when the server
+  // confirms the match is truly gone, so this can't race with match creation.
+  if (payload.clearCurrentMatchId === true && nextProfile.currentMatchId) {
+    const matchSnap = await db().ref(`matches/${nextProfile.currentMatchId}`).get();
+    const matchVal = matchSnap.val();
+    if (!matchVal || matchVal.status !== 'active') {
+      nextProfile.currentMatchId = null;
+    }
+  }
+
   updates[`profiles/${uid}`] = nextProfile;
   rootUpdateForLeaderboard(updates, nextProfile);
 
