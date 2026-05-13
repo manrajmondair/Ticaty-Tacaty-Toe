@@ -25,6 +25,7 @@ let app = {
   gameState: null,
   prevGameState: null,
   aiThinking: false,
+  aiTurnToken: 0,
   actionPending: false,
   onlineClient: null,
   onlineState: {
@@ -44,6 +45,7 @@ let app = {
   lastOnlineMatchId: null,
   previousScreenBeforeLeaderboard: 'screen-title',
   disconnectTimeoutId: null,
+  disconnectTickerId: null,
   screenTransitionTimeoutId: null,
   reactionBurstTimeoutId: null,
   lastShownReactionId: null,
@@ -137,6 +139,10 @@ function clearDisconnectTimer() {
   if (app.disconnectTimeoutId) {
     clearTimeout(app.disconnectTimeoutId);
     app.disconnectTimeoutId = null;
+  }
+  if (app.disconnectTickerId) {
+    clearInterval(app.disconnectTickerId);
+    app.disconnectTickerId = null;
   }
 }
 
@@ -381,17 +387,42 @@ function updateMatchStatusBar() {
   }
 
   if (presence?.connected === false && opponent) {
-    const elapsed = Date.now() - (presence.lastSeenAt || Date.now());
-    const remaining = Math.max(0, Math.ceil((60_000 - elapsed) / 1000));
-    text.textContent = `${opponent.displayName} is disconnected. Their duel expires in about ${remaining} seconds.`;
+    const rawElapsed = Date.now() - (presence.lastSeenAt || Date.now());
+    // Guard against client/server clock skew: if elapsed is negative or
+    // absurdly large, treat the disconnect as just-started rather than
+    // showing nonsense or auto-forfeiting unfairly.
+    const elapsed = rawElapsed < 0 || rawElapsed > 5 * 60_000 ? 0 : rawElapsed;
+    const deadlineAt = (presence.lastSeenAt || Date.now()) + 60_000;
+
+    const renderCountdown = () => {
+      const remaining = Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
+      text.textContent = remaining > 0
+        ? `${opponent.displayName} is disconnected. Their duel expires in about ${remaining} second${remaining === 1 ? '' : 's'}.`
+        : `${opponent.displayName} disconnected. You can claim the forfeit.`;
+    };
 
     clearDisconnectTimer();
+    renderCountdown();
+
     if (elapsed >= 60_000) {
       forfeitButton.hidden = false;
     } else {
+      app.disconnectTickerId = setInterval(() => {
+        if (Date.now() >= deadlineAt) {
+          forfeitButton.hidden = false;
+          renderCountdown();
+          if (app.disconnectTickerId) {
+            clearInterval(app.disconnectTickerId);
+            app.disconnectTickerId = null;
+          }
+          return;
+        }
+        renderCountdown();
+      }, 1000);
+
       app.disconnectTimeoutId = setTimeout(() => {
         claimDisconnectForfeit().catch(() => {});
-      }, (60_000 - elapsed) + 100);
+      }, (60_000 - elapsed) + 200);
     }
     return;
   }
@@ -763,6 +794,7 @@ function startLocalGame() {
   app.gameState = createInitialState();
   app.prevGameState = null;
   app.aiThinking = false;
+  app.aiTurnToken = (app.aiTurnToken || 0) + 1;
   app.actionPending = false;
   app.lastOnlineMatchId = null;
   clearDisconnectTimer();
@@ -794,6 +826,7 @@ function startOnlineGame(match) {
   app.prevGameState = isSameMatch && app.gameState ? cloneState(app.gameState) : null;
   app.gameState = hydrateState(match.stateSnapshot);
   app.aiThinking = false;
+  app.aiTurnToken = (app.aiTurnToken || 0) + 1;
   app.actionPending = false;
 
   // Preserve mid-cast spell targeting when an unrelated Firebase event (chat
@@ -934,14 +967,18 @@ function applyFallbackAIMove(state, playerName) {
 }
 
 function scheduleAIMove() {
+  if (app.aiThinking) return;
   app.aiThinking = true;
+  app.aiTurnToken = (app.aiTurnToken || 0) + 1;
+  const turnToken = app.aiTurnToken;
+  const startedInMode = app.mode;
   updateUI();
 
-  setTimeout(() => {
+  setTimeout(async () => {
     let gameOverAfter = false;
     try {
       const state = app.gameState;
-      if (!state || state.gameOver) {
+      if (!state || state.gameOver || app.mode !== startedInMode || turnToken !== app.aiTurnToken) {
         return;
       }
       const aiPlayer = state.currentPlayer;
@@ -960,7 +997,12 @@ function scheduleAIMove() {
 
       if (!acted) {
         try {
-          const move = getAIMove(state, app.difficulty);
+          const move = await getAIMove(state, app.difficulty);
+          // Bail if the game/mode changed while we were thinking; do not
+          // mutate a stale state with a move computed for a defunct game.
+          if (app.mode !== startedInMode || turnToken !== app.aiTurnToken) {
+            return;
+          }
           if (move && isValidMove(state, move.board, move.cell)) {
             app.prevGameState = cloneState(state);
             applyMove(state, move.board, move.cell);
@@ -981,11 +1023,13 @@ function scheduleAIMove() {
 
       gameOverAfter = Boolean(state.gameOver);
     } finally {
-      app.aiThinking = false;
-      updateUI();
+      if (turnToken === app.aiTurnToken) {
+        app.aiThinking = false;
+        updateUI();
+      }
     }
 
-    if (gameOverAfter) {
+    if (gameOverAfter && turnToken === app.aiTurnToken) {
       setTimeout(() => endGame(), 800);
     }
   }, 400);
@@ -1410,6 +1454,8 @@ async function handleRematchClick() {
 
 function handleGameExitClick() {
   cancelSpell(true);
+  app.aiTurnToken = (app.aiTurnToken || 0) + 1;
+  app.aiThinking = false;
 
   if (app.mode === 'online') {
     setChatPanelOpen(false);

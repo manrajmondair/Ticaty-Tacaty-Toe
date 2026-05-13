@@ -34,12 +34,19 @@ function aiMedium(state) {
 }
 
 // ── Hard: iterative deepening negamax with alpha-beta ────────────
-function aiHard(state) {
+async function aiHard(state) {
   const aiPlayer = state.currentPlayer;
   let bestMove = null;
   const searchStart = Date.now();
 
   for (let depth = 1; depth <= AI_MAX_DEPTH; depth++) {
+    if (depth > 1) {
+      // Yield to the event loop between iterative-deepening depths so the
+      // page stays responsive (paints, clicks, scroll) during AI thinking.
+      // Worst-case sync block becomes one depth instead of the full budget.
+      await new Promise(resolve => setTimeout(resolve, 0));
+      if (Date.now() - searchStart > AI_SEARCH_TIME_MS) break;
+    }
     const result = minimaxRoot(state, depth, aiPlayer, searchStart);
     if (result.timedOut && bestMove) break;
     bestMove = result.move;
@@ -326,7 +333,10 @@ export function getAISpellAction(state, difficulty) {
 }
 
 // ── Public API ───────────────────────────────────────────────────
-export function getAIMove(state, difficulty) {
+// Always returns a Promise so callers can use a single await regardless of
+// difficulty; hard mode is async (yields to the event loop), the other
+// difficulties resolve synchronously.
+export async function getAIMove(state, difficulty) {
   switch (difficulty) {
     case 'easy': return aiEasy(state);
     case 'medium': return aiMedium(state);
