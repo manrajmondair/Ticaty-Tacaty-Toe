@@ -265,6 +265,12 @@ function renderLeaderboard() {
 }
 
 function updateOnlinePanels() {
+  // Skip writes to invisible panels; this function paints the lobby and
+  // leaderboard screens, neither of which is reachable while the user is
+  // mid-duel or on the title screen.
+  const screenId = getCurrentScreenId();
+  if (screenId !== 'screen-online' && screenId !== 'screen-leaderboard') return;
+
   const state = app.onlineState;
   const availability = el('online-availability');
   const authStatus = el('online-auth-status');
@@ -698,6 +704,9 @@ function getSortedChatEntries(match) {
 }
 
 function renderOnlineChat(match) {
+  // Chat panel only exists on the game screen; skip otherwise.
+  if (getCurrentScreenId() !== 'screen-game') return;
+
   const panel = el('duel-chat-panel');
   const feed = el('duel-chat-feed');
   const status = el('duel-chat-status');
@@ -1307,9 +1316,18 @@ function handleOnlineStateChange(nextState) {
     startOnlineGame(nextState.match);
   }
 
-  updateOnlinePanels();
+  // Only touch the DOM for screens that are actually visible. The lobby
+  // panels and chat feed don't need re-rendering when the user is on a
+  // different screen — the explicit openOnlineLobby / startOnlineGame
+  // entry points already paint them on screen change.
+  const screenId = getCurrentScreenId();
+  if (screenId === 'screen-online' || screenId === 'screen-leaderboard') {
+    updateOnlinePanels();
+  }
   updateMatchStatusBar();
-  renderOnlineChat(nextState.match);
+  if (screenId === 'screen-game') {
+    renderOnlineChat(nextState.match);
+  }
 }
 
 async function claimDisconnectForfeit() {
