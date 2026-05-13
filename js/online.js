@@ -18,20 +18,37 @@ import {
   subscribeToQueue
 } from './firebaseClient.js';
 
-async function authedPost(path, body = {}) {
+const AUTHED_POST_TIMEOUT_MS = 12_000;
+
+async function authedPost(path, body = {}, options = {}) {
   const token = await getIdToken();
   if (!token) {
     throw new Error('Missing Firebase session.');
   }
 
-  const response = await fetch(path, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(body)
-  });
+  const controller = new AbortController();
+  const timeoutMs = options.timeoutMs ?? AUTHED_POST_TIMEOUT_MS;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response;
+  try {
+    response = await fetch(path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error('The server did not respond. Check your connection and try again.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {

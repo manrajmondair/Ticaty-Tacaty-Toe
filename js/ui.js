@@ -3,7 +3,7 @@ import { animateSpellEffect, renderBoard, updateBoard } from './board.js';
 import { createOnlineClient } from './online.js';
 import { getAIMove, getAISpellAction } from './ai.js';
 import { hydrateState } from './engine.js';
-import { createInitialState, cloneState, isValidMove, applyMove } from './gameState.js';
+import { createInitialState, cloneState, isValidMove, applyMove, getLegalMoves } from './gameState.js';
 import {
   castAvadaKedavra,
   castDarkMark,
@@ -553,6 +553,31 @@ function updateTurnIndicator() {
   indicator.className = `turn-indicator turn-${state.currentPlayer}`;
 }
 
+function syncSpellTargetingVisuals(state) {
+  const board = el('ultimate-board');
+  const instructions = el('spell-instructions');
+  const targetingClasses = [
+    'spell-targeting',
+    'targeting-expelliarmus',
+    'targeting-patronus',
+    'targeting-avadaKedavra',
+    'targeting-darkMark'
+  ];
+
+  if (state.castingSpell && canHumanAct()) {
+    board.classList.add('spell-targeting', `targeting-${state.castingSpell}`);
+    instructions.hidden = false;
+    const instructionText = state.castingSpell === 'avadaKedavra' && state.spellTargetStep === 1
+      ? 'Now select an adjacent empty cell.'
+      : SPELL_INSTRUCTIONS[state.castingSpell];
+    el('spell-instructions-text').textContent = instructionText;
+  } else {
+    board.classList.remove(...targetingClasses);
+    instructions.hidden = true;
+    document.querySelector('.avada-selected')?.classList.remove('avada-selected');
+  }
+}
+
 function updateUI() {
   const state = app.gameState;
   if (!state) return;
@@ -565,6 +590,7 @@ function updateUI() {
   el('harry-goal').textContent = app.mode === 'online' ? 'Harry • 3 in a row' : '3 in a row';
   el('voldemort-goal').textContent = app.mode === 'online' ? 'Voldemort • 5 of 9' : '5 of 9';
   updateSpellButtons(state);
+  syncSpellTargetingVisuals(state);
   updateMatchStatusBar();
   updateTitleActions();
   updateGameExitButton();
@@ -757,10 +783,31 @@ function startLocalGame() {
 
 function startOnlineGame(match) {
   const isSameMatch = app.lastOnlineMatchId === match.id;
+  const preservedSpellState = isSameMatch && app.gameState?.castingSpell
+    ? {
+        castingSpell: app.gameState.castingSpell,
+        spellTargetStep: app.gameState.spellTargetStep,
+        _avadaTarget: app.gameState._avadaTarget
+      }
+    : null;
+
   app.prevGameState = isSameMatch && app.gameState ? cloneState(app.gameState) : null;
   app.gameState = hydrateState(match.stateSnapshot);
   app.aiThinking = false;
   app.actionPending = false;
+
+  // Preserve mid-cast spell targeting when an unrelated Firebase event (chat
+  // reaction, presence ping, profile update) re-fires the listener.
+  if (
+    preservedSpellState &&
+    !app.gameState.gameOver &&
+    match.status === 'active' &&
+    getOnlineRole(match) === app.gameState.currentPlayer
+  ) {
+    app.gameState.castingSpell = preservedSpellState.castingSpell;
+    app.gameState.spellTargetStep = preservedSpellState.spellTargetStep;
+    app.gameState._avadaTarget = preservedSpellState._avadaTarget;
+  }
 
   if (!isSameMatch) {
     prepareFreshBoard();
@@ -770,6 +817,11 @@ function startOnlineGame(match) {
     app.lastShownReactionId = match.chat?.latestReaction?.id || null;
   } else {
     ensureBoardRendered();
+    if (!preservedSpellState) {
+      // Different turn/state arrived; make sure no stale targeting overlay
+      // lingers on the board if a spell was being cast.
+      cancelSpell(true);
+    }
   }
 
   app.lastOnlineMatchId = match.id;
@@ -869,32 +921,71 @@ async function handleOnlineMove(boardIndex, cellIndex) {
   }
 }
 
+function applyFallbackAIMove(state, playerName) {
+  const moves = getLegalMoves(state);
+  if (!moves.length) return false;
+
+  const fallback = moves[0];
+  app.prevGameState = cloneState(state);
+  applyMove(state, fallback.board, fallback.cell);
+  updateBoard(state, app.prevGameState);
+  logMessage(`${playerName} placed on board ${fallback.board + 1}, cell ${fallback.cell + 1}.`);
+  return true;
+}
+
 function scheduleAIMove() {
   app.aiThinking = true;
   updateUI();
 
   setTimeout(() => {
-    const state = app.gameState;
-    const aiPlayer = state.currentPlayer;
-    const playerName = aiPlayer === HARRY ? 'Harry' : 'Voldemort';
-    const spellAction = getAISpellAction(state, app.difficulty);
-
-    if (spellAction) {
-      executeAISpell(spellAction);
-    } else {
-      const move = getAIMove(state, app.difficulty);
-      if (move) {
-        app.prevGameState = cloneState(state);
-        applyMove(state, move.board, move.cell);
-        updateBoard(state, app.prevGameState);
-        logMessage(`${playerName} placed on board ${move.board + 1}, cell ${move.cell + 1}.`);
+    let gameOverAfter = false;
+    try {
+      const state = app.gameState;
+      if (!state || state.gameOver) {
+        return;
       }
+      const aiPlayer = state.currentPlayer;
+      const playerName = aiPlayer === HARRY ? 'Harry' : 'Voldemort';
+
+      let acted = false;
+
+      try {
+        const spellAction = getAISpellAction(state, app.difficulty);
+        if (spellAction) {
+          acted = executeAISpell(spellAction);
+        }
+      } catch (error) {
+        console.error('AI spell selection failed:', error);
+      }
+
+      if (!acted) {
+        try {
+          const move = getAIMove(state, app.difficulty);
+          if (move && isValidMove(state, move.board, move.cell)) {
+            app.prevGameState = cloneState(state);
+            applyMove(state, move.board, move.cell);
+            updateBoard(state, app.prevGameState);
+            logMessage(`${playerName} placed on board ${move.board + 1}, cell ${move.cell + 1}.`);
+            acted = true;
+          }
+        } catch (error) {
+          console.error('AI move computation failed:', error);
+        }
+      }
+
+      if (!acted) {
+        // Last-resort safety net: never let the AI yield its turn without acting,
+        // otherwise the human is permanently locked out (currentPlayer stuck on AI).
+        acted = applyFallbackAIMove(state, playerName);
+      }
+
+      gameOverAfter = Boolean(state.gameOver);
+    } finally {
+      app.aiThinking = false;
+      updateUI();
     }
 
-    app.aiThinking = false;
-    updateUI();
-
-    if (state.gameOver) {
+    if (gameOverAfter) {
       setTimeout(() => endGame(), 800);
     }
   }, 400);
@@ -915,7 +1006,9 @@ function executeAISpell(action) {
     animateSpellEffect(result.affectedCells, action.spell);
     updateBoard(state, null);
     logMessage(result.message);
+    return true;
   }
+  return false;
 }
 
 function handleSpellActivation(spellKey) {
@@ -1107,11 +1200,31 @@ function handleCellClick(event) {
 function shouldAutoOpenOnlineMatch(previousState, nextState) {
   if (app.mode !== 'online') return false;
   if (!nextState.match || nextState.match.status !== 'active') return false;
-  if (getCurrentScreenId() === 'screen-game') return true;
+  if (getCurrentScreenId() === 'screen-game') return false;
   if (getCurrentScreenId() !== 'screen-online') return false;
 
   return previousState?.queueStatus === 'searching' ||
     previousState?.match?.id !== nextState.match.id;
+}
+
+function shouldRehydrateOnlineGame(previousState, nextState) {
+  if (app.mode !== 'online' || !nextState.match) return false;
+  if (getCurrentScreenId() !== 'screen-game') return false;
+
+  // Re-hydrate on first entry, match change, status change, or any real
+  // game-state change. Chat/presence/profile events alone must NOT cause a
+  // re-hydrate, otherwise local spell-targeting state and DOM work cascades.
+  const prevMatch = previousState.match;
+  if (!prevMatch || prevMatch.id !== nextState.match.id) return true;
+  if (prevMatch.status !== nextState.match.status) return true;
+  if ((prevMatch.lastActionAt || 0) !== (nextState.match.lastActionAt || 0)) return true;
+
+  const prevSnap = JSON.stringify(prevMatch.stateSnapshot || null);
+  const nextSnap = JSON.stringify(nextState.match.stateSnapshot || null);
+  if (prevSnap !== nextSnap) return true;
+
+  // First time landing on screen-game with this match.
+  return app.lastOnlineMatchId !== nextState.match.id;
 }
 
 function handleOnlineStateChange(nextState) {
@@ -1133,11 +1246,7 @@ function handleOnlineStateChange(nextState) {
 
   if (shouldAutoOpenOnlineMatch(previousState, nextState)) {
     startOnlineGame(nextState.match);
-  } else if (
-    app.mode === 'online' &&
-    getCurrentScreenId() === 'screen-game' &&
-    nextState.match
-  ) {
+  } else if (shouldRehydrateOnlineGame(previousState, nextState)) {
     startOnlineGame(nextState.match);
   }
 
@@ -1145,9 +1254,10 @@ function handleOnlineStateChange(nextState) {
     app.mode === 'online' &&
     nextState.match?.status === 'completed' &&
     nextState.match.ratingDelta &&
-    getCurrentScreenId() === 'screen-game'
+    getCurrentScreenId() === 'screen-game' &&
+    (!previousState.match || previousState.match.status !== 'completed')
   ) {
-    startOnlineGame(nextState.match);
+    endGame();
   }
 
   updateOnlinePanels();
