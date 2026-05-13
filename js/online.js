@@ -21,7 +21,11 @@ import {
 const AUTHED_POST_TIMEOUT_MS = 12_000;
 
 async function authedPost(path, body = {}, options = {}) {
-  const token = await getIdToken();
+  return executeAuthedPost(path, body, options, false);
+}
+
+async function executeAuthedPost(path, body, options, forceRefresh) {
+  const token = await getIdToken(forceRefresh);
   if (!token) {
     throw new Error('Missing Firebase session.');
   }
@@ -48,6 +52,12 @@ async function authedPost(path, body = {}, options = {}) {
     throw error;
   } finally {
     clearTimeout(timer);
+  }
+
+  // 401 usually means the cached ID token expired or was rotated; one retry
+  // with a forced refresh recovers transparently. Anything else is real.
+  if (response.status === 401 && !forceRefresh) {
+    return executeAuthedPost(path, body, options, true);
   }
 
   const payload = await response.json().catch(() => ({}));
