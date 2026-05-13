@@ -1263,6 +1263,10 @@ function shouldRehydrateOnlineGame(previousState, nextState) {
   if (prevMatch.status !== nextState.match.status) return true;
   if ((prevMatch.lastActionAt || 0) !== (nextState.match.lastActionAt || 0)) return true;
 
+  // finalizeMatch writes ratingDelta after the status flip — surface that
+  // change so the gameover screen sees the final delta and fires endGame.
+  if (Boolean(prevMatch.ratingDelta) !== Boolean(nextState.match.ratingDelta)) return true;
+
   const prevSnap = JSON.stringify(prevMatch.stateSnapshot || null);
   const nextSnap = JSON.stringify(nextState.match.stateSnapshot || null);
   if (prevSnap !== nextSnap) return true;
@@ -1292,16 +1296,6 @@ function handleOnlineStateChange(nextState) {
     startOnlineGame(nextState.match);
   } else if (shouldRehydrateOnlineGame(previousState, nextState)) {
     startOnlineGame(nextState.match);
-  }
-
-  if (
-    app.mode === 'online' &&
-    nextState.match?.status === 'completed' &&
-    nextState.match.ratingDelta &&
-    getCurrentScreenId() === 'screen-game' &&
-    (!previousState.match || previousState.match.status !== 'completed')
-  ) {
-    endGame();
   }
 
   updateOnlinePanels();
