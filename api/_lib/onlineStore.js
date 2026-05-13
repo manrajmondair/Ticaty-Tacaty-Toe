@@ -19,6 +19,12 @@ export const STARTING_DUELING_RATING = 1000;
 export const DUELING_K_FACTOR = 32;
 export const DISCONNECT_GRACE_MS = 60_000;
 export const MATCH_CHAT_MAX_LENGTH = 240;
+// Hard ceiling on chat history per match — keeps RTDB payloads bounded even
+// if both players are unusually chatty across an extended duel.
+export const MATCH_CHAT_MAX_MESSAGES = 200;
+// Minimum gap between sends from a single uid. Tight enough to feel natural
+// in conversation but loose enough to defang held-down enter-key floods.
+export const MATCH_CHAT_MIN_INTERVAL_MS = 700;
 
 function now() {
   return Date.now();
@@ -650,10 +656,40 @@ function normalizeChatMessageText(input) {
   return text;
 }
 
+// Pure helper, exported for unit tests. Inspects existing chat entries and
+// throws a 429 if the sender is over the message cap or sending too fast.
+export function evaluateChatRateLimit(messages, uid, currentTime, options = {}) {
+  const minInterval = options.minIntervalMs ?? MATCH_CHAT_MIN_INTERVAL_MS;
+  const maxMessages = options.maxMessages ?? MATCH_CHAT_MAX_MESSAGES;
+
+  const entries = Object.values(messages || {})
+    .filter(entry => entry && typeof entry === 'object');
+
+  if (entries.length >= maxMessages) {
+    const error = new Error('This duel\'s chat history is full.');
+    error.statusCode = 429;
+    throw error;
+  }
+
+  let latestFromUid = 0;
+  for (const entry of entries) {
+    if (entry.uid !== uid) continue;
+    const ts = entry.createdAt || 0;
+    if (ts > latestFromUid) latestFromUid = ts;
+  }
+
+  if (latestFromUid > 0 && currentTime - latestFromUid < minInterval) {
+    const error = new Error('Slow down — wait a moment before sending again.');
+    error.statusCode = 429;
+    throw error;
+  }
+}
+
 export async function appendMatchChatMessage(matchId, uid, messageInput) {
   const match = await getMatch(matchId);
   validateMatchParticipant(match, uid);
   requireActiveMatch(match);
+  evaluateChatRateLimit(match.chat?.messages || {}, uid, now());
 
   const message = createChatMessage(match, uid, normalizeChatMessageText(messageInput));
 
@@ -669,6 +705,7 @@ export async function sendMatchReaction(matchId, uid, reactionKey) {
   const match = await getMatch(matchId);
   validateMatchParticipant(match, uid);
   requireActiveMatch(match);
+  evaluateChatRateLimit(match.chat?.messages || {}, uid, now());
 
   const reaction = createReactionMessage(match, uid, reactionKey);
 
